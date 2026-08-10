@@ -48,12 +48,6 @@ quote-style = "double"
 python_version = "3.11"
 strict = true
 
-[[tool.mypy.overrides]]
-module = [
-    "deap.*",
-    "rpy2.*",
-]
-
 # Explicitly exclude the notebooks directory from type checking
 exclude = [
     "^build/",
@@ -62,6 +56,13 @@ exclude = [
 
 # Standard stability settings
 warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "deap.*",
+    "rpy2.*",
+]
+ignore_missing_imports = true
 
 [dependency-groups]
 dev = [

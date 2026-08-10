@@ -182,7 +182,7 @@ def sharpe_ratio(
     """
 
     validate_array_and_bounds(returns)
-    
+
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
     volatility = float(np.std(excess_returns, ddof=ddof))
