@@ -156,7 +156,7 @@ def expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05)
 def sharpe_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
-    ddof: int = 1,
+    ddof: int = 0,
 ) -> float:
     """
     Calculate the Sharpe ratio of a sample of returns.
