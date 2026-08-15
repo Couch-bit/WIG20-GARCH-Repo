@@ -41,3 +41,5 @@ Wykorzystane dane znajdują w folderze `data/stocks/` w postaci plików `.csv` n
 - [Play Communications SA (PLY)](https://www.investing.com/equities/play-communications-historical-data),
 - [PZU SA (PZU)](https://www.investing.com/equities/pzu-historical-data),
 - [Tauron Polska Energia SA (TPE)](https://www.investing.com/equities/tauron-polska-energia-historical-data).
+
+Dodatkowo pobrano miesięczne stopy zwrotu dla 10-letnich obligacji rządowych z notowań serwisu [stooq.pl](https://stooq.pl/). Stopa zwrotu wolna od ryzyka na następny miesiąc została przyjęta jako najniższa stopa zwrotu z poprzedniego miesiąca według tych danych. Dokładniej, wykorzystano miesięczne dane od początku roku 2014 do końca lipca 2026. Dane zostały pobrane dnia 15 sierpnia w godzinach popołudniowych z pomocą [linku](https://stooq.pl/q/d/?f=20140101&t=20260731&s=10yply.b&c=0&i=m) i są zawarte w pliku `data/10yply_b_m.csv`.
