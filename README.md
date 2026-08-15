@@ -20,7 +20,7 @@ Po pierwszym wykonaniu tego skryptu nie trzeba już go więcej wywoływać chyba
 
 ## Dane
 
-Wykorzystane dane znajdują w folderze `data/` w postaci plików `.csv` nazwanych według tickerów giełdowych na GPW na stan z dnia 29 lipca 2026 (lub z ostatniego dnia w którym dana spółka była notowana na giełdzie). Dane zostały pobrane z serwisu [investing.com](https://www.investing.com) w dniu 29 lipca 2026 (w godzinach popołudniowych po końcu handlu i aktualizacji danych na stronie). Pliki zawierają dane od początku roku 2014 do 29 lipca 2026 z pominięciem dni handlowych dla których brakuje danych dla danej spółki (nie była handlowana). Dokładniej, zawierają one przede wszystkim skorygowane ceny zamknięcia obliczone dla:
+Wykorzystane dane znajdują w folderze `data/stocks/` w postaci plików `.csv` nazwanych według tickerów giełdowych na GPW na stan z dnia 29 lipca 2026 (lub z ostatniego dnia w którym dana spółka była notowana na giełdzie). Dane zostały pobrane z serwisu [investing.com](https://www.investing.com) w dniu 29 lipca 2026 (w godzinach popołudniowych po końcu handlu i aktualizacji danych na stronie). Pliki zawierają dane od początku roku 2014 do 29 lipca 2026 z pominięciem dni handlowych dla których brakuje danych dla danej spółki (nie była handlowana). Dokładniej, zawierają one przede wszystkim skorygowane ceny zamknięcia obliczone dla:
 - [Alior Bank SA (ALR)](https://www.investing.com/equities/alior-bank-historical-data),
 - [CD PROJEKT SA (CDR)](https://www.investing.com/equities/cdproject-historical-data),
 - [Cyfrowy Polsat SA (CPS)](https://www.investing.com/equities/cyfrowy-polsat-sa-historical-data),
