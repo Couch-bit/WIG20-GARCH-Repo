@@ -1,8 +1,80 @@
-from typing import cast
+from typing import Any, Literal, cast
 
 import numpy as np
 import scipy.linalg
 from numpy.typing import NDArray
+
+#############
+### Setup ###
+#############
+MetricName = Literal[
+    "sharpe",
+    "sortino",
+    "central_sortino",
+    "omega",
+    "tail_effectiveness",
+    "central_tail_effectiveness",
+]
+
+
+######################
+### Log-likelihood ###
+######################
+def univariate_normal_log_likelihood(
+    x: float | NDArray[np.float64],
+    mean: float = 0.0,
+    variance: float = 1.0,
+) -> float | NDArray[np.float64]:
+    """Calculate the log-likelihood of sample(s) under a univariate normal distribution.
+
+    Parameters
+    ----------
+    x : float | NDArray[np.float64]
+        Input observation scalar or 1D array of samples of shape `(N,)`.
+    mean : float, default=0.0
+        Mean parameter of the distribution.
+    variance : float, default=1.0
+        Variance parameter of the distribution (must be strictly positive).
+
+    Returns
+    -------
+    float | NDArray[np.float64]
+        The log-likelihood value as a float (if `x` is a scalar) or a 1D
+        NumPy array of log-likelihood values of shape `(N,)` (if `x` is a 1D array).
+
+    Raises
+    ------
+    ValueError
+        If `variance` is non-positive or if `x` is not a scalar or 1D array.
+    """
+    if variance <= 0.0:
+        raise ValueError(f"Expected 'variance' to be positive, got {variance}")
+
+    if isinstance(x, (float, int, np.floating, np.integer)):
+        is_scalar = True
+        x_batch = np.array([float(x)], dtype=np.float64)
+    elif isinstance(x, np.ndarray):
+        if x.ndim == 0:
+            is_scalar = True
+            x_batch = x.reshape(1).astype(np.float64)
+        elif x.ndim == 1:
+            is_scalar = False
+            x_batch = x.astype(np.float64)
+        else:
+            raise ValueError(f"Expected 'x' to be a scalar or 1D array, got a {x.ndim}D array")
+    else:
+        raise ValueError(f"Unsupported type for 'x': {type(x)}")
+
+    log_2pi = cast(float, np.log(2.0 * np.pi))
+    log_var = cast(float, np.log(variance))
+    sq_diff = (x_batch - mean) ** 2
+
+    log_likelihood = -0.5 * (log_2pi + log_var + (sq_diff / variance))
+
+    if is_scalar:
+        return float(log_likelihood[0])
+
+    return log_likelihood
 
 
 def multivariate_normal_log_likelihood(
@@ -93,7 +165,10 @@ def multivariate_normal_log_likelihood(
     return log_likelihood
 
 
-def validate_array_and_bounds(returns: NDArray[np.float64], alpha: float | None = None) -> None:
+#####################
+### Ratio helpers ###
+#####################
+def _validate_array_and_bounds(returns: NDArray[np.float64], alpha: float | None = None) -> None:
     """
     Validate returns array dimensionality, non-emptiness, and tail probability bounds.
 
@@ -125,7 +200,7 @@ def validate_array_and_bounds(returns: NDArray[np.float64], alpha: float | None 
         raise ValueError(f"'alpha' must be strictly between 0 and 1 (exclusive), got {alpha}")
 
 
-def expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05) -> float:
+def _expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05) -> float:
     """
     Calculate sample Expected Shortfall (CVaR) for excess returns at tail probability alpha.
 
@@ -147,13 +222,13 @@ def expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05)
         If 'returns' is not a 1D array, is empty, or if 'alpha' is out of bounds (0, 1).
     """
 
-    validate_array_and_bounds(excess_returns, alpha)
+    _validate_array_and_bounds(excess_returns, alpha)
     var_threshold = float(np.quantile(excess_returns, alpha))
     tail_returns = excess_returns[excess_returns <= var_threshold]
     return float(-np.mean(tail_returns))
 
 
-def sharpe_ratio(
+def _sharpe_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
     ddof: int = 0,
@@ -181,7 +256,7 @@ def sharpe_ratio(
         If returns array is invalid or standard deviation is zero.
     """
 
-    validate_array_and_bounds(returns)
+    _validate_array_and_bounds(returns)
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
@@ -193,7 +268,7 @@ def sharpe_ratio(
     return expected_excess_return / volatility
 
 
-def central_sortino_ratio(
+def _central_sortino_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
 ) -> float:
@@ -218,7 +293,7 @@ def central_sortino_ratio(
         If returns array is invalid or central downside deviation is zero.
     """
 
-    validate_array_and_bounds(returns)
+    _validate_array_and_bounds(returns)
 
     expected_return = float(np.mean(returns))
     expected_excess_return = expected_return - float(rf)
@@ -233,7 +308,7 @@ def central_sortino_ratio(
     return expected_excess_return / central_downside_dev
 
 
-def central_tail_effectiveness_ratio(
+def _central_tail_effectiveness_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
     alpha: float = 0.05,
@@ -261,11 +336,11 @@ def central_tail_effectiveness_ratio(
         If inputs are invalid or the denominator is zero.
     """
 
-    validate_array_and_bounds(returns, alpha)
+    _validate_array_and_bounds(returns, alpha)
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
-    es = expected_shortfall(excess_returns, alpha)
+    es = _expected_shortfall(excess_returns, alpha)
 
     denominator = es + expected_excess_return
 
@@ -275,7 +350,7 @@ def central_tail_effectiveness_ratio(
     return expected_excess_return / denominator
 
 
-def omega_ratio(
+def _omega_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
 ) -> float:
@@ -300,7 +375,7 @@ def omega_ratio(
         If returns array is invalid or expected downside is zero.
     """
 
-    validate_array_and_bounds(returns)
+    _validate_array_and_bounds(returns)
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
@@ -315,7 +390,7 @@ def omega_ratio(
     return expected_excess_return / expected_downside
 
 
-def sortino_ratio(
+def _sortino_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
 ) -> float:
@@ -340,7 +415,7 @@ def sortino_ratio(
         If returns array is invalid or downside deviation is zero.
     """
 
-    validate_array_and_bounds(returns)
+    _validate_array_and_bounds(returns)
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
@@ -355,7 +430,7 @@ def sortino_ratio(
     return expected_excess_return / downside_dev
 
 
-def tail_effectiveness_ratio(
+def _tail_effectiveness_ratio(
     returns: NDArray[np.float64],
     rf: float = 0.0,
     alpha: float = 0.05,
@@ -370,12 +445,12 @@ def tail_effectiveness_ratio(
     rf : float, default=0.0
         Risk-free rate of return $R_f$.
     alpha : float, default=0.05
-        Tail probability level for Expected Shortfall $\\alpha \\in (0, 1)$.
+        Tail probability level for Expected Shortfall.
 
     Returns
     -------
     float
-        The calculated Tail Effectiveness ratio $TE^f_\\alpha(R)$.
+        The calculated Tail Effectiveness ratio.
 
     Raises
     ------
@@ -383,13 +458,74 @@ def tail_effectiveness_ratio(
         If inputs are invalid or Expected Shortfall is zero.
     """
 
-    validate_array_and_bounds(returns, alpha)
+    _validate_array_and_bounds(returns, alpha)
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
-    es = expected_shortfall(excess_returns, alpha)
+    es = _expected_shortfall(excess_returns, alpha)
 
     if es <= 0.0:
         raise ValueError("Expected Shortfall is non-positive; Tail Effectiveness ratio is undefined")
 
     return expected_excess_return / es
+
+
+##########################
+### Metric calculation ###
+##########################
+def compute_metric(
+    returns: NDArray[np.float64],
+    metric: MetricName = "sharpe",
+    **kwargs: Any,
+) -> float:
+    """Calculate a risk-adjusted performance ratio using a specified metric model.
+
+    Parameters
+    ----------
+    returns : NDArray[np.float64]
+        1D array of sample asset returns.
+    metric : MetricName, default="sharpe"
+        The risk-adjusted performance ratio to compute. Supported options:
+
+        * ``'sharpe'``: Sharpe ratio.
+        * ``'sortino'``: Sortino ratio.
+        * ``'central_sortino'``: Central Sortino ratio.
+        * ``'omega'``: Omega ratio.
+        * ``'tail_effectiveness'``: Tail Effectiveness ratio.
+        * ``'central_tail_effectiveness'``: Central Tail Effectiveness ratio.
+    **kwargs : Any
+        Keyword arguments passed directly to the underlying ratio function:
+
+        * **rf** (*float*, default=0.0): Risk-free rate of return.
+        * **alpha** (*float*, default=0.05): Tail probability for Expected Shortfall.
+        * **ddof** (*int*, default=0): Delta degrees of freedom for Sharpe ratio.
+
+    Returns
+    -------
+    float
+        The evaluated performance ratio.
+
+    Raises
+    ------
+    ValueError
+        If ``metric`` is unrecognized or parameters fail validation checks.
+    """
+    metric_key = metric.lower().replace("-", "_")
+
+    if metric_key == "sharpe":
+        return _sharpe_ratio(returns, **kwargs)
+    if metric_key == "sortino":
+        return _sortino_ratio(returns, **kwargs)
+    if metric_key == "central_sortino":
+        return _central_sortino_ratio(returns, **kwargs)
+    if metric_key == "omega":
+        return _omega_ratio(returns, **kwargs)
+    if metric_key == "tail_effectiveness":
+        return _tail_effectiveness_ratio(returns, **kwargs)
+    if metric_key == "central_tail_effectiveness":
+        return _central_tail_effectiveness_ratio(returns, **kwargs)
+
+    raise ValueError(
+        f"unknown metric '{metric}', supported metrics are 'sharpe', 'sortino', 'central_sortino', "
+        f"'omega', 'tail_effectiveness', 'central_tail_effectiveness'"
+    )

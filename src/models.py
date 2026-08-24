@@ -752,10 +752,19 @@ def predict_mean(
         A 2D array of shape (T, N) where rows represent time periods and
         columns represent asset returns.
     model : Literal["naive", "ar", "var"], default="naive"
-        The forecasting model to use.
+        The forecasting model to use:
+
+        * `'naive'`: Historical column means.
+        * `'ar'`: Univariate AR(p) models fitted independently per asset.
+        * `'var'`: Vector Autoregressive VAR(p) model with Lasso regularization.
     **kwargs : Any
-        Keyword arguments passed directly to the underlying model implementation
-        (e.g., `p_list`, `p`, `alpha`).
+        Keyword arguments passed directly to the underlying model implementation:
+
+        * **p** (*int*, default=1): Lag order for `'var'` or single lag order for `'ar'`.
+        * **p_list** (*list[int] | int*, default=1): Lag order per asset or single integer for `'ar'`.
+        * **alpha** (*float*, default=1.0): Lasso penalty parameter for `'var'`.
+        * **tol** (*float*, default=1e-4): Convergence tolerance for `'var'` Lasso solver.
+        * **max_iter** (*int*, default=10000): Maximum iterations for `'var'` Lasso solver.
 
     Returns
     -------
@@ -794,14 +803,17 @@ def predict_volatility(
         A 2D array of shape ``(T, N)`` where rows represent time periods and
         columns represent asset residuals from a mean model.
     model : VolatilityModel, default="dcc"
-        The multivariate GARCH forecasting model to use. Supported options are:
+        The multivariate GARCH forecasting model to use:
 
-        - ``'ccc'``: Constant Conditional Correlation GARCH (:func:`predict_ccc`)
-        - ``'dcc'``: Dynamic Conditional Correlation GARCH (:func:`predict_dcc`)
-        - ``'dbekk'``: Diagonal BEKK GARCH (:func:`predict_dbekk`)
-        - ``'go_garch'``: Generalized Orthogonal GARCH (:func:`predict_go_garch`)
+        * `'ccc'`: Constant Conditional Correlation GARCH.
+        * `'dcc'`: Dynamic Conditional Correlation GARCH (or aDCC if asymmetric).
+        * `'dbekk'`: Diagonal BEKK GARCH.
+        * `'go_garch'`: Generalized Orthogonal GARCH via ICA decomposition.
     **kwargs : Any
-        Keyword arguments passed directly to the underlying model implementation.
+        Keyword arguments passed directly to the underlying model implementation:
+
+        * **asymmetric** (*bool*, default=False): Incorporate leverage effects (for `'dcc'` and `'dbekk'`).
+        * **univariate_model** (*UGARCHModel | list[UGARCHModel]*, default="sGARCH"): Univariate GARCH name in rugarch.
 
     Returns
     -------
@@ -824,7 +836,7 @@ def predict_volatility(
         return _predict_dcc(returns_matrix, **kwargs)
     if model_key == "dbekk":
         return _predict_dbekk(returns_matrix, **kwargs)
-    if model_key in ("go_garch", "gogarch"):
+    if model_key == "go_garch":
         return _predict_go_garch(returns_matrix, **kwargs)
 
     raise ValueError(f"unknown volatility model '{model}', supported models are 'ccc', 'dcc', 'dbekk', 'go_garch'")
