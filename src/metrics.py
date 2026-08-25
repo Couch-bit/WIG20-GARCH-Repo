@@ -47,6 +47,7 @@ def univariate_normal_log_likelihood(
     ValueError
         If `variance` is non-positive or if `x` is not a scalar or 1D array.
     """
+
     if variance <= 0.0:
         raise ValueError(f"Expected 'variance' to be positive, got {variance}")
 
