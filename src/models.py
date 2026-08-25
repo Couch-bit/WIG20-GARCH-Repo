@@ -211,6 +211,7 @@ r_predict_gogarch <- function(data_mat, u_models) {
 }
 """)
 
+MeanModel = Literal["naive", "ar", "var"]
 UGARCHModel = Literal["sGARCH", "eGARCH", "gjrGARCH"]
 VolatilityModel = Literal["ccc", "dcc", "dbekk", "go_garch"]
 
@@ -493,6 +494,46 @@ def _predict_var_lasso(
     return forecasts, residuals
 
 
+def _predict_naive_cov(
+    returns_matrix: NDArray[np.float64],
+    cov_eps: float = 1e-8,
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """Calculate 1-step ahead naive sample covariance forecast and standardized residuals.
+
+    Parameters
+    ----------
+    returns_matrix : NDArray[np.float64]
+        A 2D array of shape (T, N) containing zero-mean residuals from a mean model.
+    cov_eps : float, default=1e-8
+        Minimum eigenvalue floor to prevent numerical instability during matrix square root inverse.
+
+    Returns
+    -------
+    cov_forecast : NDArray[np.float64]
+        A 2D array of shape (N, N) containing the sample covariance matrix forecast.
+    std_residuals : NDArray[np.float64]
+        A 2D array of shape (T, N) containing in-sample standardized residuals.
+
+    Raises
+    ------
+    ValueError
+        If returns_matrix is not 2D or has zero dimensions.
+    """
+
+    if returns_matrix.ndim != 2 or returns_matrix.size == 0:
+        raise ValueError("returns_matrix must be a non-empty 2D array")
+
+    t_obs, _ = returns_matrix.shape
+    cov_f = (returns_matrix.T @ returns_matrix) / t_obs
+
+    # Spectral decomposition for matrix square root inverse H^{-1/2}
+    eig_val, eig_vec = np.linalg.eigh(cov_f)
+    inv_sqrt_cov = eig_vec @ np.diag(1.0 / np.sqrt(np.maximum(eig_val, 1e-8))) @ eig_vec.T
+    std_res = returns_matrix @ inv_sqrt_cov
+
+    return cov_f, std_res
+
+
 def _validate_u_models(
     u_model: UGARCHModel | list[UGARCHModel],
     num_assets: int,
@@ -740,7 +781,7 @@ def _predict_go_garch(
 ###########################
 def predict_mean(
     returns_matrix: NDArray[np.float64],
-    model: Literal["naive", "ar", "var"] = "naive",
+    model: MeanModel = "naive",
     **kwargs: Any,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
@@ -751,7 +792,7 @@ def predict_mean(
     returns_matrix : NDArray[np.float64]
         A 2D array of shape (T, N) where rows represent time periods and
         columns represent asset returns.
-    model : Literal["naive", "ar", "var"], default="naive"
+    model : MeanModel, default="naive"
         The forecasting model to use:
 
         * `'naive'`: Historical column means.
@@ -776,7 +817,7 @@ def predict_mean(
     Raises
     ------
     ValueError
-        If model is unrecognized or arguments are invalid.
+        If model is unrecognized, arguments are invalid, or optimization fails.
     """
 
     if model == "naive":
@@ -805,9 +846,10 @@ def predict_volatility(
     model : VolatilityModel, default="dcc"
         The multivariate GARCH forecasting model to use:
 
+        * `'naive'`: Sample covariance matrix assuming zero-mean residuals.
         * `'ccc'`: Constant Conditional Correlation GARCH.
         * `'dcc'`: Dynamic Conditional Correlation GARCH (or aDCC if asymmetric).
-        * `'dbekk'`: Diagonal BEKK GARCH.
+        * `'dbekk'`: Diagonal BEKK GARCH (can be asymmetric).
         * `'go_garch'`: Generalized Orthogonal GARCH via ICA decomposition.
     **kwargs : Any
         Keyword arguments passed directly to the underlying model implementation:
@@ -830,6 +872,8 @@ def predict_volatility(
 
     model_key = model.lower().replace("-", "_")
 
+    if model_key == "naive":
+        return _predict_naive_cov(returns_matrix, **kwargs)
     if model_key == "ccc":
         return _predict_ccc(returns_matrix, **kwargs)
     if model_key == "dcc":
@@ -839,4 +883,6 @@ def predict_volatility(
     if model_key == "go_garch":
         return _predict_go_garch(returns_matrix, **kwargs)
 
-    raise ValueError(f"unknown volatility model '{model}', supported models are 'ccc', 'dcc', 'dbekk', 'go_garch'")
+    raise ValueError(
+        f"unknown volatility model '{model}', supported models are 'naive', 'ccc', 'dcc', 'dbekk', 'go_garch'"
+    )
