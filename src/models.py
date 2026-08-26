@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Literal, cast
+from typing import Any, Literal, cast, get_args
 
 import numpy as np
 import rpy2.robjects as robjects
@@ -213,9 +213,9 @@ r_predict_gogarch <- function(data_mat, u_models) {
 
 MeanModel = Literal["naive", "ar", "var"]
 UGARCHModel = Literal["sGARCH", "eGARCH", "gjrGARCH"]
-VolatilityModel = Literal["ccc", "dcc", "dbekk", "go_garch"]
+VolatilityModel = Literal["naive", "ccc", "dcc", "dbekk", "go_garch"]
 
-_ALLOWED_MODELS = {"sGARCH", "eGARCH", "gjrGARCH"}
+_ALLOWED_MODELS = set(get_args(UGARCHModel))
 
 
 #########################
@@ -566,7 +566,7 @@ def _validate_u_models(
 
     for m in models:
         if m not in _ALLOWED_MODELS:
-            raise ValueError(f"invalid model '{m}', supported models are 'sGARCH', 'eGARCH', 'gjrGARCH'")
+            raise ValueError(f"invalid model '{m}'")
 
     if len(models) != 1 and len(models) != num_assets:
         raise ValueError(
@@ -781,7 +781,7 @@ def _predict_go_garch(
 ###########################
 def predict_mean(
     returns_matrix: NDArray[np.float64],
-    model: MeanModel = "naive",
+    model: MeanModel,
     **kwargs: Any,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
@@ -792,7 +792,7 @@ def predict_mean(
     returns_matrix : NDArray[np.float64]
         A 2D array of shape (T, N) where rows represent time periods and
         columns represent asset returns.
-    model : MeanModel, default="naive"
+    model : MeanModel
         The forecasting model to use:
 
         * `'naive'`: Historical column means.
@@ -827,12 +827,12 @@ def predict_mean(
     if model == "var":
         return _predict_var_lasso(returns_matrix, **kwargs)
 
-    raise ValueError(f"unknown model '{model}', supported models are 'naive', 'ar', 'var'")
+    raise ValueError(f"unknown model '{model}'")
 
 
 def predict_volatility(
     returns_matrix: NDArray[np.float64],
-    model: VolatilityModel = "dcc",
+    model: VolatilityModel,
     **kwargs: Any,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
@@ -843,7 +843,7 @@ def predict_volatility(
     returns_matrix : NDArray[np.float64]
         A 2D array of shape ``(T, N)`` where rows represent time periods and
         columns represent asset residuals from a mean model.
-    model : VolatilityModel, default="dcc"
+    model : VolatilityModel
         The multivariate GARCH forecasting model to use:
 
         * `'naive'`: Sample covariance matrix assuming zero-mean residuals.
@@ -883,6 +883,4 @@ def predict_volatility(
     if model_key == "go_garch":
         return _predict_go_garch(returns_matrix, **kwargs)
 
-    raise ValueError(
-        f"unknown volatility model '{model}', supported models are 'naive', 'ccc', 'dcc', 'dbekk', 'go_garch'"
-    )
+    raise ValueError(f"unknown volatility model '{model}'")

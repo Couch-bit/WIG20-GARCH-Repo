@@ -178,19 +178,21 @@ def optimize_portfolio(
         score1, err1 = safe_evaluate(ind1)
         score2, err2 = safe_evaluate(ind2)
 
-        # If one errors out and the other doesn't, the erroring one wins
+        def get_mean_return(ind: list[int]) -> float:
+            w = np.array(ind, dtype=float) / total_tokens
+            return float(np.dot(asset_means, w))
+
+        # If ind1 errors and ind2 does not: ind1 is better if mean_return >= 0
         if err1 and not err2:
-            return True
+            return get_mean_return(ind1) >= 0.0
+
+        # If ind2 errors and ind1 does not: ind2 is better if mean_return >= 0 (so ind1 is worse)
         if not err1 and err2:
-            return False
+            return get_mean_return(ind2) < 0.0
 
         # If both error out, pick the one with higher mean return
         if err1 and err2:
-            w1 = np.array(ind1, dtype=float) / total_tokens
-            w2 = np.array(ind2, dtype=float) / total_tokens
-            mean_ret1 = float(np.dot(asset_means, w1))
-            mean_ret2 = float(np.dot(asset_means, w2))
-            return mean_ret1 > mean_ret2
+            return get_mean_return(ind1) > get_mean_return(ind2)
 
         # If neither errors out, directly compare metrics
         return cast(float, score1) > cast(float, score2)
@@ -221,10 +223,15 @@ def optimize_portfolio(
 
             def warm_sort_key(ind: list[int]) -> tuple[int, float]:
                 score, err = safe_evaluate(ind)
+                w = np.array(ind, dtype=float) / total_tokens
+                mean_ret = float(np.dot(asset_means, w))
+
                 if err:
-                    w = np.array(ind, dtype=float) / total_tokens
-                    return (1, float(np.dot(asset_means, w)))
-                return (0, cast(float, score))
+                    if mean_ret >= 0.0:
+                        return (2, mean_ret)
+                    return (0, mean_ret)
+
+                return (1, cast(float, score))
 
             # Rank the warm-start population and pick the top `num_warm` best individuals
             sorted_warm = sorted(warm_start_pop, key=warm_sort_key, reverse=True)

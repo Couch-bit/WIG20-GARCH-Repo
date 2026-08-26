@@ -476,7 +476,7 @@ def _tail_effectiveness_ratio(
 ##########################
 def compute_metric(
     returns: NDArray[np.float64],
-    metric: MetricName = "sharpe",
+    metric: MetricName,
     **kwargs: Any,
 ) -> float:
     """Calculate a risk-adjusted performance ratio using a specified metric model.
@@ -485,7 +485,7 @@ def compute_metric(
     ----------
     returns : NDArray[np.float64]
         1D array of sample asset returns.
-    metric : MetricName, default="sharpe"
+    metric : MetricName
         The risk-adjusted performance ratio to compute. Supported options:
 
         * ``'sharpe'``: Sharpe ratio.
@@ -526,7 +526,4 @@ def compute_metric(
     if metric_key == "central_tail_effectiveness":
         return _central_tail_effectiveness_ratio(returns, **kwargs)
 
-    raise ValueError(
-        f"unknown metric '{metric}', supported metrics are 'sharpe', 'sortino', 'central_sortino', "
-        f"'omega', 'tail_effectiveness', 'central_tail_effectiveness'"
-    )
+    raise ValueError(f"unknown metric '{metric}'")
