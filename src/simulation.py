@@ -296,9 +296,11 @@ def run_backtest(
                 adjusted_weights = prev_full_weights * simple_obs
 
                 adj_sum = adjusted_weights.sum()
-                adjusted_weights /= adj_sum
-
-                turnover = float(np.sum(np.abs(full_weights - adjusted_weights)))
+                if adj_sum > 0:
+                    adjusted_weights /= adj_sum
+                    turnover = float(np.sum(np.abs(full_weights - adjusted_weights)))
+                else:
+                    turnover = float("nan")
 
             prev_full_weights = full_weights.copy()
             prev_valid_assets = valid_assets_list

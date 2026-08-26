@@ -255,7 +255,7 @@ def _tune_var_lasso(
     ------
     ValueError
         If inputs do not satisfy shape/window constraints, if `p_grid` contains no
-        valid lags, or if no candidate (p, alpha) combination converges.
+        valid lags, if there are no valid alphas, or if no candidate (p, alpha) combination converges.
     """
 
     t_obs, num_assets = _validate_returns_matrix(returns_matrix, window_size)
