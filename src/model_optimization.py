@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Literal, cast
 
 import numpy as np
@@ -100,11 +101,11 @@ def _tune_ar_matrix(
     ------
     ValueError
         If inputs do not satisfy shape/window constraints, if `p_grid` contains no
-        valid lags.
+        valid lags, or if no candidate lag order converges for an asset.
     """
 
     t_obs, num_assets = _validate_returns_matrix(returns_matrix, window_size)
-    lags_to_test = list(p_grid) if p_grid is not None else _DEFAULT_AR_P_GRID
+    lags_to_test = list(p_grid) if p_grid else _DEFAULT_AR_P_GRID
 
     # Filter out lag orders larger than window_size - 1
     valid_lags = [p for p in lags_to_test if 0 < p < window_size]
@@ -115,7 +116,7 @@ def _tune_ar_matrix(
 
     for col_idx in range(num_assets):
         series = returns_matrix[:, col_idx]
-        best_p = valid_lags[0]
+        best_p = None
         best_total_ll = -np.inf
 
         for p in valid_lags:
@@ -141,6 +142,9 @@ def _tune_ar_matrix(
             if valid_candidate and total_ll > best_total_ll:
                 best_total_ll = total_ll
                 best_p = p
+
+        if best_p is None or best_total_ll == -np.inf:
+            raise ValueError(f"No valid lag order converged for asset index {col_idx}")
 
         best_p_list.append(best_p)
 
@@ -176,17 +180,17 @@ def _tune_var(
     ------
     ValueError
         If inputs do not satisfy shape/window constraints, if `p_grid` contains no
-        valid lags.
+        valid lags, or if no candidate lag order converges.
     """
 
     t_obs, num_assets = _validate_returns_matrix(returns_matrix, window_size)
-    lags_to_test = list(p_grid) if p_grid is not None else _DEFAULT_VAR_P_GRID
+    lags_to_test = list(p_grid) if p_grid else _DEFAULT_VAR_P_GRID
 
     valid_lags = [p for p in lags_to_test if 0 < p < window_size]
     if not valid_lags:
         raise ValueError("No valid lag orders in p_grid relative to window_size")
 
-    best_p = valid_lags[0]
+    best_p = None
     best_total_ll = -np.inf
 
     for p in valid_lags:
@@ -212,6 +216,9 @@ def _tune_var(
         if valid_candidate and total_ll > best_total_ll:
             best_total_ll = total_ll
             best_p = p
+
+    if best_p is None or best_total_ll == -np.inf:
+        raise ValueError("No valid VAR lag order converged across candidate grid")
 
     return {"p": best_p}
 
@@ -248,20 +255,24 @@ def _tune_var_lasso(
     ------
     ValueError
         If inputs do not satisfy shape/window constraints, if `p_grid` contains no
-        valid lags.
+        valid lags, or if no candidate (p, alpha) combination converges.
     """
 
     t_obs, num_assets = _validate_returns_matrix(returns_matrix, window_size)
 
-    lags_to_test = list(p_grid) if p_grid is not None else _DEFAULT_VAR_LASSO_P_GRID
-    alphas_to_test = list(alpha_grid) if alpha_grid is not None else _DEFAULT_ALPHA_GRID
+    lags_to_test = list(p_grid) if p_grid else _DEFAULT_VAR_LASSO_P_GRID
+    raw_alphas = list(alpha_grid) if alpha_grid else _DEFAULT_ALPHA_GRID
 
     valid_lags = [p for p in lags_to_test if 0 < p < window_size]
     if not valid_lags:
         raise ValueError("No valid lag orders in p_grid relative to window_size")
 
-    best_p = valid_lags[0]
-    best_alpha = alphas_to_test[0]
+    alphas_to_test = [a for a in raw_alphas if a >= 0.0]
+    if not alphas_to_test:
+        raise ValueError("No valid non-negative alpha values in alpha_grid")
+
+    best_p = None
+    best_alpha = None
     best_total_ll = -np.inf
 
     for p in valid_lags:
@@ -289,6 +300,9 @@ def _tune_var_lasso(
                 best_total_ll = total_ll
                 best_p = p
                 best_alpha = alpha
+
+    if best_p is None or best_alpha is None or best_total_ll == -np.inf:
+        raise ValueError("No valid VAR Lasso candidate (p, alpha) converged across candidate grid")
 
     return {"p": best_p, "alpha": best_alpha}
 
@@ -337,7 +351,12 @@ def _generate_rolling_residuals(
             test_res = test_obs - fcst
             window_residuals_list.append(in_sample_res)
             test_residuals_list.append(test_res)
-        except Exception:
+        except Exception as e:
+            warnings.warn(
+                f"Mean model '{mean_model}' fitting failed at window index {start_idx}: {e}",
+                category=UserWarning,
+                stacklevel=2,
+            )
             continue
 
     if not window_residuals_list:
@@ -378,19 +397,25 @@ def _tune_univariate_garch_per_asset(
     -------
     list[UGARCHModel]
         List of optimal univariate GARCH model strings per asset series.
+
+    Raises
+    ------
+    ValueError
+        If `window_residuals_list` is empty or if no candidate univariate GARCH model
+        converges for an asset series.
     """
 
-    models_to_test = list(u_grid) if u_grid is not None else _DEFAULT_UGARCH_GRID
+    models_to_test = list(u_grid) if u_grid else _DEFAULT_UGARCH_GRID
     num_windows = len(window_residuals_list)
 
     if num_windows == 0:
-        return [models_to_test[0]] * num_assets
+        raise ValueError("No rolling window residual data available for tuning univariate GARCH models")
 
     best_u_models: list[UGARCHModel] = []
     zero_mean = 0.0
 
     for col_idx in range(num_assets):
-        best_m = models_to_test[0]
+        best_m = None
         best_total_ll = -np.inf
 
         for m in models_to_test:
@@ -415,6 +440,9 @@ def _tune_univariate_garch_per_asset(
             if valid_candidate and total_ll > best_total_ll:
                 best_total_ll = total_ll
                 best_m = m
+
+        if best_m is None or best_total_ll == -np.inf:
+            raise ValueError(f"No valid univariate GARCH model converged for asset index {col_idx}")
 
         best_u_models.append(best_m)
 
@@ -445,6 +473,12 @@ def _tune_ccc(
     -------
     dict[str, Any]
         Dictionary containing `'univariate_model'`: list of optimal univariate model specifications per asset.
+
+    Raises
+    ------
+    ValueError
+        If `window_residuals_list` is empty or if no candidate univariate GARCH model
+        converges for an asset series.
     """
 
     best_u_models = _tune_univariate_garch_per_asset(
@@ -484,19 +518,25 @@ def _tune_dcc(
     -------
     dict[str, Any]
         Dictionary containing `'asymmetric'`, and `'univariate_model'`: list of univariate models.
+
+    Raises
+    ------
+    ValueError
+        If `window_residuals_list` is empty, if no candidate univariate GARCH model
+        converges, or if no candidate DCC asymmetric specification converges.
     """
+
+    num_windows = len(window_residuals_list)
+    if num_windows == 0:
+        raise ValueError("No rolling window residual data available for tuning DCC models")
 
     asym_options = list(asymmetric_grid) if asymmetric_grid is not None else _DEFAULT_ASYMMETRIC_GRID
     best_u_models = _tune_univariate_garch_per_asset(
         window_residuals_list, test_residuals_matrix, num_assets=num_assets, u_grid=u_grid
     )
 
-    num_windows = len(window_residuals_list)
-    if num_windows == 0:
-        return {"asymmetric": asym_options[0], "univariate_model": best_u_models}
-
     zero_mean_vec = np.zeros(num_assets, dtype=np.float64)
-    best_asym = asym_options[0]
+    best_asym = None
     best_total_ll = -np.inf
 
     for asym in asym_options:
@@ -523,6 +563,9 @@ def _tune_dcc(
         if valid_candidate and total_ll > best_total_ll:
             best_total_ll = total_ll
             best_asym = asym
+
+    if best_asym is None or best_total_ll == -np.inf:
+        raise ValueError("No valid DCC asymmetric specification converged across candidate grid")
 
     return {"asymmetric": best_asym, "univariate_model": best_u_models}
 
@@ -553,16 +596,21 @@ def _tune_dbekk(
     -------
     dict[str, Any]
         Dictionary containing `'asymmetric'`: optimal leverage parameter choice.
+
+    Raises
+    ------
+    ValueError
+        If `window_residuals_list` is empty or if no candidate DBEKK asymmetric specification converges.
     """
 
     asym_options = list(asymmetric_grid) if asymmetric_grid is not None else _DEFAULT_ASYMMETRIC_GRID
     num_windows = len(window_residuals_list)
 
     if num_windows == 0:
-        return {"asymmetric": asym_options[0]}
+        raise ValueError("No rolling window residual data available for tuning DBEKK models")
 
     zero_mean_vec = np.zeros(num_assets, dtype=np.float64)
-    best_asym = asym_options[0]
+    best_asym = None
     best_total_ll = -np.inf
 
     for asym in asym_options:
@@ -584,6 +632,9 @@ def _tune_dbekk(
         if valid_candidate and total_ll > best_total_ll:
             best_total_ll = total_ll
             best_asym = asym
+
+    if best_asym is None or best_total_ll == -np.inf:
+        raise ValueError("No valid DBEKK asymmetric specification converged across candidate grid")
 
     return {"asymmetric": best_asym}
 
@@ -615,16 +666,22 @@ def _tune_go_garch(
     -------
     dict[str, Any]
         Dictionary containing `'univariate_model'`: single optimal univariate model specification string.
+
+    Raises
+    ------
+    ValueError
+        If `window_residuals_list` is empty or if no candidate GO-GARCH univariate
+        specification converges across the candidate grid.
     """
 
-    models_to_test = list(u_grid) if u_grid is not None else _DEFAULT_UGARCH_GRID
+    models_to_test = list(u_grid) if u_grid else _DEFAULT_UGARCH_GRID
     num_windows = len(window_residuals_list)
 
     if num_windows == 0:
-        return {"univariate_model": models_to_test[0]}
+        raise ValueError("No rolling window residual data available for tuning GO-GARCH models")
 
     zero_mean_vec = np.zeros(num_assets, dtype=np.float64)
-    best_u_model = models_to_test[0]
+    best_u_model = None
     best_total_ll = -np.inf
 
     for m in models_to_test:
@@ -646,6 +703,9 @@ def _tune_go_garch(
         if valid_candidate and total_ll > best_total_ll:
             best_total_ll = total_ll
             best_u_model = m
+
+    if best_u_model is None or best_total_ll == -np.inf:
+        raise ValueError("No valid GO-GARCH univariate specification converged across candidate grid")
 
     return {"univariate_model": best_u_model}
 
@@ -691,6 +751,7 @@ def tune_mean_model(
     ------
     ValueError
         If `model` is unrecognized or arguments fail validation checks.
+        Can also be raised if no candidate converges.
     """
 
     model_key = model.lower().replace("-", "_")
@@ -756,6 +817,7 @@ def tune_volatility_model(
     ------
     ValueError
         If `model` is unrecognized or if inputs fail initial shape/window validation checks.
+        Can also be raised if no candidate converges.
     """
 
     _, num_assets = _validate_returns_matrix(returns_matrix, window_size)

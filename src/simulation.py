@@ -1,4 +1,6 @@
 import json
+import logging
+import warnings
 from pathlib import Path
 from typing import Any, cast
 
@@ -66,6 +68,7 @@ def run_backtest(
     ga_metric: MetricName,
     save_path: str | Path,
     rf_rates_path: str | Path | None = None,
+    log_path: str | Path | None = None,
     **kwargs: Any,
 ) -> pd.DataFrame:
     """
@@ -93,6 +96,8 @@ def run_backtest(
         Path where the resulting DataFrame should be saved as a Parquet file.
     rf_rates_path : str | Path | None, default=None
         Path to a JSON file containing monthly risk-free rates indexed by 'YYYY-MM'.
+    log_path : str | Path | None, default=None
+        Path to a log file where execution warnings and model failures are recorded.
     **kwargs : Any
         Additional keyword arguments passed directly to the genetic algorithm.
 
@@ -111,6 +116,18 @@ def run_backtest(
     # Validation checks
     if window_size <= 0:
         raise ValueError(f"window_size must be strictly positive, got {window_size}")
+
+    # Configure logger
+    logger = logging.getLogger("backtest_logger")
+    logger.setLevel(logging.WARNING)
+    logger.handlers.clear()
+
+    if log_path is not None:
+        log_file = Path(log_path)
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+        logger.addHandler(file_handler)
 
     # Load risk-free rates dictionary from JSON if path is provided
     rf_rates_dict: dict[str, float] = {}
@@ -149,6 +166,7 @@ def run_backtest(
     for test_idx in range(start_idx, end_idx + 1):
         current_t = test_idx - 1  # Last day of history
         test_date = df.index[test_idx]
+        date_str = test_date.strftime("%Y-%m-%d")
 
         is_first_day = test_idx == start_idx
         is_new_year = (test_date.year != prev_test_date.year) if prev_test_date is not None else False
@@ -166,20 +184,38 @@ def run_backtest(
 
             if len(valid_tune_cols) > 0:
                 tuning_ret_mat = tuning_slice[valid_tune_cols].values
-                try:
-                    mean_kwargs = tune_mean_model(tuning_ret_mat, model=mean_model, window_size=window_size)
-                except Exception:
-                    mean_kwargs = {}
-                try:
-                    vol_kwargs = tune_volatility_model(
-                        tuning_ret_mat,
-                        model=volatility_model,
-                        mean_model=mean_model,
-                        window_size=window_size,
-                        mean_kwargs=mean_kwargs,
-                    )
-                except Exception:
-                    vol_kwargs = {}
+
+                # Tune mean model and capture emitted warnings
+                with warnings.catch_warnings(record=True) as caught_warnings:
+                    warnings.simplefilter("always")
+                    try:
+                        mean_kwargs = tune_mean_model(tuning_ret_mat, model=mean_model, window_size=window_size)
+                    except Exception as e:
+                        logger.warning(f"[{date_str}] [Mean Model Tuning] Failed for '{mean_model}': {e}")
+                        mean_kwargs = {}
+
+                    for w in caught_warnings:
+                        logger.warning(f"[{date_str}] [Mean Model Tuning] {w.message}")
+
+                # Tune volatility model and capture emitted warnings
+                with warnings.catch_warnings(record=True) as caught_warnings:
+                    warnings.simplefilter("always")
+                    try:
+                        vol_kwargs = tune_volatility_model(
+                            tuning_ret_mat,
+                            model=volatility_model,
+                            mean_model=mean_model,
+                            window_size=window_size,
+                            mean_kwargs=mean_kwargs,
+                        )
+                    except Exception as e:
+                        logger.warning(f"[{date_str}] [Volatility Model Tuning] Failed for '{volatility_model}': {e}")
+                        vol_kwargs = {}
+
+                    for w in caught_warnings:
+                        logger.warning(f"[{date_str}] [Volatility Model Tuning] {w.message}")
+            else:
+                logger.warning(f"[{date_str}] [Tuning] Tuning couldn't run due to no valid assets")
 
         # ESTIMATION PHASE
         window_data = window_slice[valid_cols].iloc[:-1].values
@@ -188,9 +224,19 @@ def run_backtest(
         failed_fit = False
         try:
             fcst_mean, in_res = predict_mean(window_data, model=mean_model, **mean_kwargs)
-            fcst_cov, std_res = predict_volatility(in_res, model=volatility_model, **vol_kwargs)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"[{date_str}] Mean model execution failed for '{mean_model}': {e}")
             failed_fit = True
+
+        if not failed_fit:
+            try:
+                fcst_cov, std_res = predict_volatility(in_res, model=volatility_model, **vol_kwargs)
+            except Exception as e:
+                logger.warning(f"[{date_str}] Volatility model execution failed for '{volatility_model}': {e}")
+                failed_fit = True
+
+        if failed_fit:
+            logger.warning(f"[{date_str}] Falling back to naive model optimization")
             fcst_mean, in_res = predict_mean(window_data, model="naive")
             fcst_cov, std_res = predict_volatility(in_res, model="naive")
 
@@ -234,6 +280,7 @@ def run_backtest(
 
                 current_weights = best_weights
             else:
+                logger.warning(f"[{date_str}] Falling back to previous weights")
                 # Keep previously aligned weights unchanged because fit failed and we can safely reuse old weights
                 current_weights = cast(NDArray[np.float64], prev_full_weights[valid_cols].values)
 
