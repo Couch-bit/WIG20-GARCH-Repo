@@ -16,11 +16,11 @@ def optimize_portfolio(
     mutpb: float = 0.2,
     max_shift: int = 20,
     indpb: float = 0.5,
-    tournsize: int = 3,
+    tournsize: int = 2,
     total_tokens: int = 1000,
     warm_start_pop: list[list[int]] | None = None,
     warm_start_ratio: float = 0.2,
-) -> NDArray[np.float64]:
+) -> tuple[NDArray[np.float64], list[list[int]]]:
     """
     Optimize portfolio allocation using a Genetic Algorithm with pairwise comparison.
 
@@ -44,7 +44,7 @@ def optimize_portfolio(
         The maximum possible shift of tokens during mutation.
     indpb : float, default=0.5
         Independent probability for each attribute to be exchanged during crossover.
-    tournsize : int, default=3
+    tournsize : int, default=2
         Number of candidates during each round of tournament selection.
     total_tokens : int, default=1000
         Total integer tokens for allocation resolution (step size = 1/total_tokens).
@@ -57,6 +57,8 @@ def optimize_portfolio(
     -------
     best_weights : NDArray[np.float64]
         A 1D array of portfolio weights (summing to 1.0) for the optimal individual.
+    final_population : list[list[int]]
+        A list of token chromosomes representing the final population at the end of evolution.
 
     Raises
     ------
@@ -279,4 +281,6 @@ def optimize_portfolio(
             best_ind = ind
 
     best_weights = np.array(best_ind, dtype=float) / total_tokens
-    return best_weights
+    final_population = [list(ind) for ind in pop]
+
+    return best_weights, final_population

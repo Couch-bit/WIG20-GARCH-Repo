@@ -162,6 +162,7 @@ def run_backtest(
     prev_valid_assets: list[str] = []
     prev_full_weights = pd.Series(0.0, index=df.columns)
     prev_test_date = None
+    prev_population: list[list[int]] | None = None
 
     for test_idx in range(start_idx, end_idx + 1):
         current_t = test_idx - 1  # Last day of history
@@ -254,28 +255,35 @@ def run_backtest(
         if optimize_portfolio_flag:
             valid_changed = prev_valid_assets != valid_assets_list
 
-            # Generate simulated returns and convert them into simple returns upfront for GA efficiency
-            fhs_returns = _generate_fhs_returns(fcst_mean, fcst_cov, std_res)
-            fhs_simple_returns = np.exp(fhs_returns) - 1.0
+            # If the set of active assets changed, invalidate warm start population
+            if valid_changed:
+                prev_population = None
 
             # Extract monthly risk-free rate for current evaluation date
             year_month_key = test_date.strftime("%Y-%m")
             rf_rate = float(rf_rates_dict.get(year_month_key, 0.0))
 
-            def ga_eval_func(ret_mat: NDArray[np.float64], w: NDArray[np.float64], rf_rate: float = rf_rate) -> float:
-                port_simple = np.sum(ret_mat * w, axis=1)
-                return compute_metric(port_simple, metric=ga_metric, rf=rf_rate)
+            # Generate simulated returns and convert them into simple returns upfront for GA efficiency
+            fhs_returns = _generate_fhs_returns(fcst_mean, fcst_cov, std_res)
+            fhs_simple_returns = np.exp(fhs_returns) - 1.0
+            fhs_excess_returns = fhs_simple_returns - rf_rate
+
+            def ga_eval_func(ret_mat: NDArray[np.float64], w: NDArray[np.float64]) -> float:
+                port_excess = np.sum(ret_mat * w, axis=1)
+                return compute_metric(port_excess, metric=ga_metric)
 
             # Run GA if it's the first day, investments changed, the fit succeeded, or there are no fallback weights
             if is_first_day or valid_changed or not failed_fit or prev_full_weights.sum() == 0:
-                best_weights = optimize_portfolio(fhs_simple_returns, metric_func=ga_eval_func, **kwargs)
+                best_weights, prev_population = optimize_portfolio(
+                    fhs_excess_returns, metric_func=ga_eval_func, warm_start_pop=prev_population, **kwargs
+                )
                 try:
-                    best_val = ga_eval_func(fhs_simple_returns, best_weights)
+                    best_val = ga_eval_func(fhs_excess_returns, best_weights)
                     is_finite = True
                 except ValueError:
-                    # Metric was undefined; fallback to mean simple return
-                    port_simple = np.sum(fhs_simple_returns * best_weights, axis=1)
-                    best_val = float(np.mean(port_simple))
+                    # Metric was undefined; fallback to mean excess return
+                    port_excess = np.sum(fhs_excess_returns * best_weights, axis=1)
+                    best_val = float(np.mean(port_excess))
                     is_finite = False
 
                 current_weights = best_weights
