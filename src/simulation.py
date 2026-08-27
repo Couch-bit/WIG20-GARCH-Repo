@@ -178,12 +178,15 @@ def run_backtest(
         valid_cols = window_slice.columns[window_slice.notna().all(axis=0)]
         valid_assets_list = list(valid_cols)
 
+        if len(valid_cols) < 2:
+            raise ValueError(f"[{date_str}] Less than 2 valid assets available without NaNs in the estimation window")
+
         # TUNING PHASE
         if is_first_day or is_new_year:
             tuning_slice = df.iloc[current_t - tuning_window + 1 : current_t + 1]
             valid_tune_cols = tuning_slice.columns[tuning_slice.notna().all(axis=0)]
 
-            if len(valid_tune_cols) > 0:
+            if len(valid_tune_cols) >= 2:
                 tuning_ret_mat = tuning_slice[valid_tune_cols].values
 
                 # Tune mean model and capture emitted warnings
@@ -216,7 +219,7 @@ def run_backtest(
                     for w in caught_warnings:
                         logger.warning(f"[{date_str}] [Volatility Model Tuning] {w.message}")
             else:
-                logger.warning(f"[{date_str}] [Tuning] Tuning couldn't run due to no valid assets")
+                logger.warning(f"[{date_str}] [Tuning] Tuning couldn't run due to less than 2 valid assets")
 
         # ESTIMATION PHASE
         window_data = window_slice[valid_cols].iloc[:-1].values
