@@ -114,7 +114,7 @@ def optimize_portfolio(
 
     # DEAP Class Creation
     if not hasattr(creator, "FitnessPlaceholder"):
-        creator.create("FitnessPlaceholder", base.Fitness)
+        creator.create("FitnessPlaceholder", base.Fitness, weights=(1.0,))
     if not hasattr(creator, "Individual"):
         creator.create("Individual", list, fitness=creator.FitnessPlaceholder)
 
