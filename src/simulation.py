@@ -7,6 +7,7 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
+from tqdm import tqdm
 
 from metrics import MetricName, compute_metric, multivariate_normal_log_likelihood
 from model_optimization import tune_mean_model, tune_volatility_model
@@ -164,7 +165,7 @@ def run_backtest(
     prev_test_date = None
     prev_population: list[list[int]] | None = None
 
-    for test_idx in range(start_idx, end_idx + 1):
+    for test_idx in tqdm(range(start_idx, end_idx + 1), desc="Running backtest"):
         current_t = test_idx - 1  # Last day of history
         test_date = df.index[test_idx]
         date_str = test_date.strftime("%Y-%m-%d")
