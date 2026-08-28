@@ -6,6 +6,8 @@ import numpy as np
 from deap import base, creator, tools
 from numpy.typing import NDArray
 
+from config import TOTAL_TOKENS
+
 
 def optimize_portfolio(
     returns_matrix: NDArray[np.float64],
@@ -17,7 +19,7 @@ def optimize_portfolio(
     max_shift: int = 20,
     indpb: float = 0.5,
     tournsize: int = 2,
-    total_tokens: int = 1000,
+    total_tokens: int = TOTAL_TOKENS,
     warm_start_pop: list[list[int]] | None = None,
     warm_start_ratio: float = 0.2,
 ) -> tuple[NDArray[np.float64], list[list[int]]]:
@@ -46,7 +48,7 @@ def optimize_portfolio(
         Independent probability for each attribute to be exchanged during crossover.
     tournsize : int, default=2
         Number of candidates during each round of tournament selection.
-    total_tokens : int, default=1000
+    total_tokens : int, default=TOTAL_TOKENS
         Total integer tokens for allocation resolution (step size = 1/total_tokens).
     warm_start_pop : list[list[int]] | None, default=None
         Optional population of token chromosomes (must have length equal to pop_size) to seed the initial generation.
