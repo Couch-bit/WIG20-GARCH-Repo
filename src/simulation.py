@@ -9,10 +9,10 @@ import pandas as pd
 from numpy.typing import NDArray
 from tqdm import tqdm
 
-from metrics import MetricName, compute_metric, multivariate_normal_log_likelihood
-from model_optimization import tune_mean_model, tune_volatility_model
-from models import MeanModel, VolatilityModel, predict_mean, predict_volatility
-from portfolio_optimization import optimize_portfolio
+from src.metrics import MetricName, compute_metric, multivariate_normal_log_likelihood
+from src.model_optimization import tune_mean_model, tune_volatility_model
+from src.models import MeanModel, VolatilityModel, predict_mean, predict_volatility
+from src.portfolio_optimization import optimize_portfolio
 
 
 ##########################

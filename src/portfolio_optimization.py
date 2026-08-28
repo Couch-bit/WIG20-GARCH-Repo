@@ -6,7 +6,7 @@ import numpy as np
 from deap import base, creator, tools
 from numpy.typing import NDArray
 
-from config import TOTAL_TOKENS
+from src.config import TOTAL_TOKENS
 
 
 def optimize_portfolio(

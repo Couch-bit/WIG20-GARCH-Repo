@@ -4,9 +4,9 @@ from typing import Any, Literal, cast
 import numpy as np
 from numpy.typing import NDArray
 
-from config import WINDOW_SIZE
-from metrics import multivariate_normal_log_likelihood, univariate_normal_log_likelihood
-from models import (
+from src.config import WINDOW_SIZE
+from src.metrics import multivariate_normal_log_likelihood, univariate_normal_log_likelihood
+from src.models import (
     MeanModel,
     UGARCHModel,
     VolatilityModel,
