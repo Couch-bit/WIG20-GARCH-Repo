@@ -211,7 +211,7 @@ r_predict_gogarch <- function(data_mat, u_models) {
 }
 """)
 
-MeanModel = Literal["naive", "ar", "var"]
+MeanModel = Literal["naive", "ar", "var", "var_lasso"]
 UGARCHModel = Literal["sGARCH", "eGARCH", "gjrGARCH"]
 VolatilityModel = Literal["naive", "ccc", "dcc", "dbekk", "go_garch"]
 
@@ -797,7 +797,8 @@ def predict_mean(
 
         * `'naive'`: Historical column means.
         * `'ar'`: Univariate AR(p) models fitted independently per asset.
-        * `'var'`: Vector Autoregressive VAR(p) model with Lasso regularization.
+        * `'var'`: Vector Autoregressive VAR(p) model.
+        * `'var_lasso'`: Vector Autoregressive VAR(p) model with Lasso regularization.
     **kwargs : Any
         Keyword arguments passed directly to the underlying model implementation:
 
@@ -824,7 +825,7 @@ def predict_mean(
         return _predict_naive_mean(returns_matrix)
     if model == "ar":
         return _predict_ar_matrix(returns_matrix, **kwargs)
-    if model == "var":
+    if model in ("var", "var_lasso"):
         return _predict_var_lasso(returns_matrix, **kwargs)
 
     raise ValueError(f"unknown model '{model}'")
