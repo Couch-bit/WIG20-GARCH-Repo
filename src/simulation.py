@@ -66,8 +66,8 @@ def run_backtest(
     mean_model: MeanModel,
     volatility_model: VolatilityModel,
     optimize_portfolio_flag: bool,
-    ga_metric: MetricName,
     save_path: str | Path,
+    ga_metric: MetricName | None = None,
     rf_rates_path: str | Path | None = None,
     log_path: str | Path | None = None,
     **kwargs: Any,
@@ -91,10 +91,10 @@ def run_backtest(
         String identifier for the multivariate volatility model.
     optimize_portfolio_flag : bool
         Whether to calculate optimal portfolio weights using FHS and the genetic algorithm.
-    ga_metric : MetricName
-        String identifier for the optimization metric target used in the genetic algorithm.
     save_path : str | Path
         Path where the resulting DataFrame should be saved as a Parquet file.
+    ga_metric : MetricName | None, default=None
+        String identifier for the optimization metric target used in the genetic algorithm.
     rf_rates_path : str | Path | None, default=None
         Path to a JSON file containing monthly risk-free rates indexed by 'YYYY-MM'.
     log_path : str | Path | None, default=None
@@ -117,6 +117,8 @@ def run_backtest(
     # Validation checks
     if window_size <= 0:
         raise ValueError(f"window_size must be strictly positive, got {window_size}")
+    if optimize_portfolio_flag and ga_metric is None:
+        raise ValueError("ga_metric must be provided when optimizing portfolios")
 
     # Configure logger
     logger = logging.getLogger("backtest_logger")
@@ -270,7 +272,7 @@ def run_backtest(
 
             def ga_eval_func(ret_mat: NDArray[np.float64], w: NDArray[np.float64]) -> float:
                 port_excess = np.sum(ret_mat * w, axis=1)
-                return compute_metric(port_excess, metric=ga_metric)
+                return compute_metric(port_excess, metric=cast(MetricName, ga_metric))
 
             # Run GA if it's the first day, investments changed, the fit succeeded, or there are no fallback weights
             if is_first_day or valid_changed or not failed_fit or prev_full_weights.sum() == 0:
