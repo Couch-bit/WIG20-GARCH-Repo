@@ -152,10 +152,6 @@ def run_backtest(
         raise ValueError(
             f"Not enough historical data before start_date '{start_date}'. Need {tuning_window} days for tuning window"
         )
-    if end_idx + 1 >= len(df):
-        raise ValueError(
-            f"There must be at least one additional day after end_date '{end_date}' to calculate metrics fully"
-        )
 
     results_list = []
     mean_kwargs: dict[str, Any] = {}
