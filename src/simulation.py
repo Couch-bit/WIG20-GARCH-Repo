@@ -55,6 +55,57 @@ def _generate_fhs_returns(
     return simulated_returns
 
 
+def _align_model_kwargs(
+    kwargs: dict[str, Any],
+    tune_cols: list[str],
+    current_cols: list[str],
+    default_p: int = 1,
+    default_spec: str = "sGARCH",
+) -> dict[str, Any]:
+    """
+    Re-align tuned asset-specific hyperparameters to the current active asset columns.
+
+    Maps positional or dictionary-based hyperparameter configurations (such as AR lag lists
+    or univariate GARCH specifications) from the set of assets present during the tuning
+    window to match the exact asset ordering and availability of the daily evaluation window.
+
+    Parameters
+    ----------
+    kwargs : dict[str, Any]
+        Dictionary of hyperparameter keyword arguments returned by model tuning functions.
+    tune_cols : list[str]
+        List of asset column names that were valid and present during the tuning phase.
+    current_cols : list[str]
+        List of asset column names currently valid in the daily evaluation window.
+    default_p : int, default=1
+        Fallback AR lag order assigned to assets present in `current_cols` but missing
+        from `tune_cols`.
+    default_spec : str, default="sGARCH"
+        Fallback volatility model specification assigned to assets present in `current_cols`
+        but missing from `tune_cols`.
+
+    Returns
+    -------
+    dict[str, Any]
+        A shallow copy of `kwargs` with asset-specific parameters filtered and aligned
+        to match `current_cols`.
+    """
+
+    aligned = kwargs.copy()
+
+    # Align AR lags
+    if "p_list" in kwargs and tune_cols:
+        p_map = dict(zip(tune_cols, kwargs["p_list"], strict=False))
+        aligned["p_list"] = [p_map.get(col, default_p) for col in current_cols]
+
+    # Align GARCH/volatility specs
+    if "univariate_model" in kwargs and isinstance(kwargs["univariate_model"], list):
+        spec_map = dict(zip(tune_cols, kwargs["univariate_model"], strict=False))
+        aligned["univariate_model"] = [spec_map.get(col, default_spec) for col in current_cols]
+
+    return aligned
+
+
 ###########################
 ### Simulation Function ###
 ###########################
@@ -122,13 +173,13 @@ def run_backtest(
 
     # Configure logger
     logger = logging.getLogger("backtest_logger")
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.INFO)
     logger.handlers.clear()
 
     if log_path is not None:
         log_file = Path(log_path)
         log_file.parent.mkdir(parents=True, exist_ok=True)
-        file_handler = logging.FileHandler(log_file, mode="a", encoding="utf-8")
+        file_handler = logging.FileHandler(log_file, mode="w", encoding="utf-8")
         file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
         logger.addHandler(file_handler)
 
@@ -163,6 +214,8 @@ def run_backtest(
     prev_test_date = None
     prev_population: list[list[int]] | None = None
 
+    valid_tune_assets: list[str] = []
+
     for test_idx in tqdm(range(start_idx, end_idx + 1), desc="Running backtest"):
         current_t = test_idx - 1  # Last day of history
         test_date = df.index[test_idx]
@@ -184,6 +237,7 @@ def run_backtest(
         if is_first_day or is_new_year:
             tuning_slice = df.iloc[current_t - tuning_window + 1 : current_t + 1]
             valid_tune_cols = tuning_slice.columns[tuning_slice.notna().all(axis=0)]
+            valid_tune_assets = list(valid_tune_cols)
 
             if len(valid_tune_cols) >= 2:
                 tuning_ret_mat = tuning_slice[valid_tune_cols].values
@@ -193,6 +247,9 @@ def run_backtest(
                     warnings.simplefilter("always")
                     try:
                         mean_kwargs = tune_mean_model(tuning_ret_mat, model=mean_model, window_size=window_size)
+                        logger.info(
+                            f"[{date_str}] [Mean Model Tuning] Tuned parameters for '{mean_model}': {mean_kwargs}"
+                        )
                     except Exception as e:
                         logger.warning(f"[{date_str}] [Mean Model Tuning] Failed for '{mean_model}': {e}")
                         mean_kwargs = {}
@@ -211,6 +268,10 @@ def run_backtest(
                             window_size=window_size,
                             mean_kwargs=mean_kwargs,
                         )
+                        logger.info(
+                            f"[{date_str}] [Volatility Model Tuning] Tuned parameters for '{volatility_model}':"
+                            + f" {vol_kwargs}"
+                        )
                     except Exception as e:
                         logger.warning(f"[{date_str}] [Volatility Model Tuning] Failed for '{volatility_model}': {e}")
                         vol_kwargs = {}
@@ -224,16 +285,20 @@ def run_backtest(
         window_data = window_slice[valid_cols].iloc[:-1].values
         test_obs = cast(NDArray[np.float64], window_slice[valid_cols].iloc[-1].values)
 
+        # Align kwargs to current valid assets
+        curr_mean_kwargs = _align_model_kwargs(mean_kwargs, valid_tune_assets, valid_assets_list)
+
         failed_fit = False
         try:
-            fcst_mean, in_res = predict_mean(window_data, model=mean_model, **mean_kwargs)
+            fcst_mean, in_res = predict_mean(window_data, model=mean_model, **curr_mean_kwargs)
         except Exception as e:
             logger.warning(f"[{date_str}] Mean model execution failed for '{mean_model}': {e}")
             failed_fit = True
 
         if not failed_fit:
+            curr_vol_kwargs = _align_model_kwargs(vol_kwargs, valid_tune_assets, valid_assets_list)
             try:
-                fcst_cov, std_res = predict_volatility(in_res, model=volatility_model, **vol_kwargs)
+                fcst_cov, std_res = predict_volatility(in_res, model=volatility_model, **curr_vol_kwargs)
             except Exception as e:
                 logger.warning(f"[{date_str}] Volatility model execution failed for '{volatility_model}': {e}")
                 failed_fit = True
