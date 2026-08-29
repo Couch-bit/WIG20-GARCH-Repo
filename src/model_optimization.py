@@ -22,7 +22,7 @@ from src.models import (
 _DEFAULT_AR_P_GRID = list(range(1, 21))
 _DEFAULT_VAR_P_GRID = list(range(1, 6))
 _DEFAULT_VAR_LASSO_P_GRID = list(range(1, 21))
-_DEFAULT_ALPHA_GRID = [1e-4, 1e-3, 1e-2, 0.1, 1.0, 10.0]
+_DEFAULT_ALPHA_GRID = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1]
 
 _DEFAULT_UGARCH_GRID: list[UGARCHModel] = ["sGARCH", "eGARCH", "gjrGARCH"]
 _DEFAULT_ASYMMETRIC_GRID = [False, True]
@@ -823,6 +823,9 @@ def tune_volatility_model(
     _, num_assets = _validate_returns_matrix(returns_matrix, window_size)
     model_key = model.lower().replace("-", "_")
 
+    if model_key == "naive":
+        return {}
+
     # Sequentially fit mean model on rolling windows to generate aligned residual arrays
     window_residuals_list, test_residuals_matrix = _generate_rolling_residuals(
         returns_matrix,
@@ -831,8 +834,6 @@ def tune_volatility_model(
         mean_kwargs=mean_kwargs,
     )
 
-    if model_key == "naive":
-        return {}
     if model_key == "ccc":
         return _tune_ccc(window_residuals_list, test_residuals_matrix, num_assets=num_assets, **kwargs)
     if model_key == "dcc":
