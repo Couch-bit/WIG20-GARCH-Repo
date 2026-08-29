@@ -220,7 +220,7 @@ def _expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05
     Raises
     ------
     ValueError
-        If 'returns' is not a 1D array, is empty, or if 'alpha' is out of bounds (0, 1).
+        If 'excess_returns' is not a 1D array, is empty, or if 'alpha' is out of bounds (0, 1).
     """
 
     _validate_array_and_bounds(excess_returns, alpha)
@@ -243,7 +243,7 @@ def _sharpe_ratio(
         1D array of sample asset returns.
     rf : float, default=0.0
         Risk-free rate of return.
-    ddof : int, default=1
+    ddof : int, default=0
         Delta degrees of freedom used in standard deviation calculation.
 
     Returns
@@ -265,6 +265,10 @@ def _sharpe_ratio(
 
     if volatility == 0.0:
         raise ValueError("Standard deviation of excess returns is zero; Sharpe ratio is undefined")
+
+    # Fix for unintuive results for negative returns
+    if expected_excess_return < 0:
+        return expected_excess_return * volatility
 
     return expected_excess_return / volatility
 
@@ -305,6 +309,10 @@ def _central_sortino_ratio(
 
     if central_downside_dev == 0.0:
         raise ValueError("Central downside deviation is zero; Central Sortino ratio is undefined")
+
+    # Fix for unintuive results for negative returns
+    if expected_excess_return < 0:
+        return expected_excess_return * central_downside_dev
 
     return expected_excess_return / central_downside_dev
 
@@ -348,6 +356,10 @@ def _central_tail_effectiveness_ratio(
     if denominator == 0.0:
         raise ValueError("Denominator (ES_alpha + E[R - Rf]) is zero; ratio is undefined")
 
+    # Fix for unintuive results for negative returns
+    if expected_excess_return < 0:
+        return expected_excess_return * denominator
+
     return expected_excess_return / denominator
 
 
@@ -387,6 +399,10 @@ def _omega_ratio(
 
     if expected_downside == 0.0:
         raise ValueError("Expected downside below risk-free rate is zero; Omega ratio is undefined")
+
+    # Fix for unintuive results for negative returns
+    if expected_excess_return < 0:
+        return expected_excess_return * expected_downside
 
     return expected_excess_return / expected_downside
 
@@ -428,6 +444,10 @@ def _sortino_ratio(
     if downside_dev == 0.0:
         raise ValueError("Downside deviation below risk-free rate is zero; Sortino ratio is undefined")
 
+    # Fix for unintuive results for negative returns
+    if expected_excess_return < 0:
+        return expected_excess_return * downside_dev
+
     return expected_excess_return / downside_dev
 
 
@@ -467,6 +487,10 @@ def _tail_effectiveness_ratio(
 
     if es <= 0.0:
         raise ValueError("Expected Shortfall is non-positive; Tail Effectiveness ratio is undefined")
+
+    # Fix for unintuive results for negative returns
+    if expected_excess_return < 0:
+        return expected_excess_return * es
 
     return expected_excess_return / es
 
@@ -511,6 +535,7 @@ def compute_metric(
     ValueError
         If ``metric`` is unrecognized or parameters fail validation checks.
     """
+
     metric_key = metric.lower().replace("-", "_")
 
     if metric_key == "sharpe":
