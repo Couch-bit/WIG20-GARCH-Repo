@@ -2,6 +2,7 @@ import warnings
 from typing import Any, Literal, cast, get_args
 
 import numpy as np
+import rpy2.rinterface_lib.callbacks as rpy2_callbacks
 import rpy2.robjects as robjects
 from numpy.typing import NDArray
 from rpy2.robjects import numpy2ri
@@ -14,11 +15,26 @@ from sklearn.linear_model import Lasso, LinearRegression
 # Activate automatic NumPy <-> R array conversion
 numpy2ri.activate()
 
+# Suppress console output from R
+rpy2_callbacks.consolewrite_warnerror = lambda x: None
+
+
 # Define helper functions in R environment
 robjects.r("""
 library(rugarch)
 library(rmgarch)
 library(BEKKs)
+
+extract_H_t <- function(H_obj, t_idx, T_obs, N_val) {
+  if (is.list(H_obj)) return(H_obj[[t_idx]])
+  d <- dim(H_obj)
+  if (length(d) == 3) {
+    return(if (d[3] == T_obs) H_obj[,, t_idx] else H_obj[t_idx,, ])
+  } else if (length(d) == 2) {
+    return(matrix(if (d[1] == T_obs) H_obj[t_idx, ] else H_obj[, t_idx], nrow = N_val, ncol = N_val))
+  }
+  stop("Unknown covariance matrix structure in fit$H")
+}
 
 r_predict_ugarch <- function(series, model_type) {
   spec <- ugarchspec(
@@ -53,38 +69,36 @@ r_predict_ccc <- function(data_mat, u_models) {
   })
   
   mspec <- multispec(uspec_list)
-  cspec <- dccspec(mspec, VAR = FALSE, dccOrder = c(0, 0))
-  fit <- dccfit(cspec, data = data_mat)
+  u_fit <- multifit(mspec, data = data_mat)
   
-  # Univariate convergence check
-  u_conv <- sapply(fit@model$umodel@fit, function(x) x@fit$convergence)
+  u_conv <- sapply(u_fit@fit, function(x) x@fit$convergence)
   if (any(u_conv != 0)) {
     failures <- which(u_conv != 0)
     stop(paste("CCC Stage 1 (Univariate GARCH) failed to converge for asset(s):", paste(failures, collapse = ", ")))
   }
   
-  # Multivariate CCC convergence check
-  if (!is.null(fit@mfit$convergence)) {
-    m_conv <- fit@mfit$convergence
-  } else if (!is.null(fit@fit$convergence)) {
-    m_conv <- fit@fit$convergence
-  } else {
-    m_conv <- 0
-  }
+  Z_mat <- do.call(cbind, lapply(u_fit@fit, function(x) as.numeric(residuals(x, standardize = TRUE))))
+  colnames(Z_mat) <- colnames(data_mat)
   
-  if (m_conv != 0) {
-    stop(paste("CCC Stage 2 (Multivariate Correlation) failed to converge with code", m_conv))
-  }
+  R_mat <- cor(Z_mat)
   
-  fcst <- dccforecast(fit, n.ahead = 1)
-  cov_f <- rcov(fcst)[[1]][,,1]
-  std_res <- residuals(fit, standardize = TRUE)
+  eig <- eigen(R_mat)
+  R_inv_sqrt <- eig$vectors %*% diag(1 / sqrt(pmax(eig$values, 1e-8))) %*% t(eig$vectors)
+  std_res <- Z_mat %*% R_inv_sqrt
+  colnames(std_res) <- colnames(data_mat)
+  
+  u_fcst <- multiforecast(u_fit, n.ahead = 1)
+  sigmas <- as.numeric(sigma(u_fcst))
+  cov_f <- diag(sigmas) %*% R_mat %*% diag(sigmas)
+  colnames(cov_f) <- colnames(data_mat)
+  rownames(cov_f) <- colnames(data_mat)
   
   list(cov_forecast = cov_f, std_residuals = std_res)
 }
 
 r_predict_dcc <- function(data_mat, asymmetric, u_models) {
   N <- ncol(data_mat)
+  T_obs <- nrow(data_mat)
   if (length(u_models) == 1) {
     u_models <- rep(u_models, N)
   }
@@ -97,63 +111,71 @@ r_predict_dcc <- function(data_mat, asymmetric, u_models) {
   })
   
   mspec <- multispec(uspec_list)
-  model_type <- if (asymmetric) "aDCC" else "DCC"
-  dspec <- dccspec(mspec, dccOrder = c(1, 1), model = model_type)
-  fit <- dccfit(dspec, data = data_mat)
+  u_fit <- multifit(mspec, data = data_mat)
   
-  # Univariate convergence check
-  u_conv <- sapply(fit@model$umodel@fit, function(x) x@fit$convergence)
+  u_conv <- sapply(u_fit@fit, function(x) x@fit$convergence)
   if (any(u_conv != 0)) {
     failures <- which(u_conv != 0)
     stop(paste("DCC Stage 1 (Univariate GARCH) failed to converge for asset(s):", paste(failures, collapse = ", ")))
   }
   
-  # Multivariate DCC convergence check
-  if (!is.null(fit@mfit$convergence)) {
-    m_conv <- fit@mfit$convergence
-  } else if (!is.null(fit@fit$convergence)) {
-    m_conv <- fit@fit$convergence
-  } else {
-    m_conv <- 0
-  }
+  Z_mat <- do.call(cbind, lapply(u_fit@fit, function(x) as.numeric(residuals(x, standardize = TRUE))))
   
-  if (m_conv != 0) {
+  model_type <- if (asymmetric) "aDCC" else "DCC"
+  dspec <- dccspec(mspec, dccOrder = c(1, 1), model = model_type)
+  fit <- dccfit(dspec, data = data_mat, fit = u_fit)
+  
+  m_conv <- fit@mfit$convergence
+  if (!is.null(m_conv) && m_conv != 0) {
     stop(paste("DCC Stage 2 (Multivariate Correlation) failed to converge with code", m_conv))
   }
   
+  R_array <- rcor(fit)
+  std_res <- matrix(0, nrow = T_obs, ncol = N)
+  
+  for (t in 1:T_obs) {
+    R_t <- R_array[,, t]
+    eig <- eigen(R_t)
+    R_inv_sqrt <- eig$vectors %*% diag(1 / sqrt(pmax(eig$values, 1e-8))) %*% t(eig$vectors)
+    std_res[t, ] <- as.numeric(R_inv_sqrt %*% Z_mat[t, ])
+  }
+  colnames(std_res) <- colnames(data_mat)
+  
   fcst <- dccforecast(fit, n.ahead = 1)
   cov_f <- rcov(fcst)[[1]][,,1]
-  std_res <- residuals(fit, standardize = TRUE)
   
   list(cov_forecast = cov_f, std_residuals = std_res)
 }
 
 r_predict_dbekk <- function(data_mat, asymmetric) {
-  # Fit DBEKK model with tryCatch for error handling
   fit <- tryCatch({
     spec <- bekk_spec(model = list(type = "dbekk", asymmetric = asymmetric))
     bekk_fit(spec, data = data_mat)
   }, error = function(e) {
     stop(paste("DBEKK model failed to converge or fit:", e$message))
   })
+
+  if (!is.null(fit$BEKK_valid) && !fit$BEKK_valid) {
+    stop("DBEKK model parameters are not valid")
+  }
   
   T_obs <- nrow(data_mat)
   N <- ncol(data_mat)
 
   C_mat <- fit$C0 %*% t(fit$C0)
-  A_mat <- fit$A
-  G_mat <- fit$G
+  A_mat <- if (is.list(fit$A)) fit$A[[1]] else fit$A
+  G_mat <- if (is.list(fit$G)) fit$G[[1]] else fit$G
   
-  # Extract last mean residual and last fitted covariance matrix
+  # Use raw input matrix directly under zero-mean assumption
   e_T <- matrix(data_mat[T_obs, ], ncol = 1)
-  H_T <- if (is.list(fit$H)) fit$H[[T_obs]] else fit$H[,,T_obs]
+  H_T <- extract_H_t(fit$H, T_obs, T_obs, N)
   
   # Base 1-step ahead forecast: H_{T+1} = C + A' (e_T e_T') A + G' H_T G
   cov_f <- C_mat + t(A_mat) %*% (e_T %*% t(e_T)) %*% A_mat + t(G_mat) %*% H_T %*% G_mat
   
   # Add leverage term using B matrix if asymmetric: + B' (eta_T eta_T') B
   if (asymmetric && !is.null(fit$B)) {
-    B_mat <- fit$B
+    B_mat <- if (is.list(fit$B)) fit$B[[1]] else fit$B
     eta_T <- pmin(e_T, 0)
     cov_f <- cov_f + t(B_mat) %*% (eta_T %*% t(eta_T)) %*% B_mat
   }
@@ -161,20 +183,21 @@ r_predict_dbekk <- function(data_mat, asymmetric) {
   # Compute standardized residuals manually: z_t = H_t^{-1/2} * e_t
   std_res <- matrix(0, nrow = T_obs, ncol = N)
   for (t in 1:T_obs) {
-    H_t <- if (is.list(fit$H)) fit$H[[t]] else fit$H[,,t]
+    H_t <- extract_H_t(fit$H, t, T_obs, N)
     e_t <- matrix(data_mat[t, ], ncol = 1)
     
-    # Spectral decomposition for matrix square root inverse H_t^{-1/2}
     eig <- eigen(H_t)
     inv_sqrt_H <- eig$vectors %*% diag(1 / sqrt(pmax(eig$values, 1e-8))) %*% t(eig$vectors)
     std_res[t, ] <- as.numeric(inv_sqrt_H %*% e_t)
   }
+  colnames(std_res) <- colnames(data_mat)
   
   list(cov_forecast = cov_f, std_residuals = std_res)
 }
 
 r_predict_gogarch <- function(data_mat, u_models) {
   N <- ncol(data_mat)
+  T_obs <- nrow(data_mat)
   if (length(u_models) == 1) {
     u_models <- rep(u_models, N)
   }
@@ -187,25 +210,44 @@ r_predict_gogarch <- function(data_mat, u_models) {
   })
   
   mspec <- multispec(uspec_list)
-  gspec <- gogarchspec(mspec)
-  fit <- gogarchfit(gspec, data = data_mat)
-  
-  # Univariate ICA component convergence check
-  u_conv <- sapply(fit@model$umodel@fit, function(x) x@fit$convergence)
+  gspec <- gogarchspec(mspec, mean.model = list(model = "constant"))
+
+  # This is helpful for removing messages from fitting
+  temp_file <- tempfile()
+  sink(temp_file)
+  fit <- tryCatch({
+    gogarchfit(gspec, data = data_mat)
+  }, finally = {
+    sink()
+    unlink(temp_file)
+  })
+
+  # Univariate convergence check
+  u_conv <- sapply(fit@mfit$ufit@fit, function(x) x@fit$convergence)
   if (any(u_conv != 0)) {
-    failed_comp <- which(u_conv != 0)
-    stop(paste("GO-GARCH Stage 1 failed to converge for component(s):", paste(failed_comp, collapse = ", ")))
+    failures <- which(u_conv != 0)
+    stop(paste("Univariate GARCH failed to converge for components:", paste(failures, collapse = ", ")))
   }
   
-  # Multivariate / ICA convergence check
-  m_conv <- if (!is.null(fit@fit$convergence)) fit@fit$convergence else 0
-  if (m_conv != 0) {
-    stop(paste("GO-GARCH Stage 2 (Mixing Matrix / Multivariate) failed to converge with code", m_conv))
+  # Subtract estimated constant mean vector (r_t - hat{mu}) as required by GO-GARCH
+  raw_asset_res <- data_mat - fit@mfit$mu
+  
+  # Full covariance whitening using asset covariance matrices H_t
+  H_array <- rcov(fit)
+  std_res <- matrix(0, nrow = T_obs, ncol = N)
+  
+  for (t in 1:T_obs) {
+    H_t <- H_array[,, t]
+    e_t <- matrix(raw_asset_res[t, ], ncol = 1)
+    
+    eig <- eigen(H_t)
+    inv_sqrt_H <- eig$vectors %*% diag(1 / sqrt(pmax(eig$values, 1e-8))) %*% t(eig$vectors)
+    std_res[t, ] <- as.numeric(inv_sqrt_H %*% e_t)
   }
+  colnames(std_res) <- colnames(data_mat)
   
   fcst <- gogarchforecast(fit, n.ahead = 1)
   cov_f <- rcov(fcst)[[1]][,,1]
-  std_res <- residuals(fit, standardize = TRUE)
   
   list(cov_forecast = cov_f, std_residuals = std_res)
 }
@@ -298,12 +340,12 @@ def predict_univariate_garch(
     Raises
     ------
     ValueError
-        If ``series`` is empty or not 1D, if ``model`` is unsupported, or if model fitting
+        If ``series`` is invalid, if ``model`` is unsupported, or if model fitting
         fails to converge.
     """
 
-    if series.ndim != 1 or series.shape[0] == 0:
-        raise ValueError("series must be a non-empty 1D array")
+    if series.ndim != 1 or len(series) < 10:
+        raise ValueError("series must be a 1D array with at least 10 observations")
     if model not in _ALLOWED_MODELS:
         raise ValueError(f"invalid model '{model}', supported models are 'sGARCH', 'eGARCH', 'gjrGARCH'")
 
@@ -517,18 +559,18 @@ def _predict_naive_cov(
     Raises
     ------
     ValueError
-        If returns_matrix is not 2D or has zero dimensions.
+        If returns_matrix is not 2D or has less than 10 observations.
     """
 
-    if returns_matrix.ndim != 2 or returns_matrix.size == 0:
-        raise ValueError("returns_matrix must be a non-empty 2D array")
+    if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
+        raise ValueError("returns_matrix must be a 2D array with at least 10 rows (observations)")
 
     t_obs, _ = returns_matrix.shape
     cov_f = (returns_matrix.T @ returns_matrix) / t_obs
 
     # Spectral decomposition for matrix square root inverse H^{-1/2}
     eig_val, eig_vec = np.linalg.eigh(cov_f)
-    inv_sqrt_cov = eig_vec @ np.diag(1.0 / np.sqrt(np.maximum(eig_val, 1e-8))) @ eig_vec.T
+    inv_sqrt_cov = eig_vec @ np.diag(1.0 / np.sqrt(np.maximum(eig_val, cov_eps))) @ eig_vec.T
     std_res = returns_matrix @ inv_sqrt_cov
 
     return cov_f, std_res
@@ -611,8 +653,8 @@ def _predict_ccc(
         Stage 1 (univariate) or Stage 2 (multivariate) optimization fails to converge.
     """
 
-    if returns_matrix.ndim != 2 or returns_matrix.size == 0:
-        raise ValueError("returns_matrix must be a non-empty 2D array")
+    if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
+        raise ValueError("returns_matrix must be a 2D array with at least 10 rows (observations)")
 
     num_assets = returns_matrix.shape[1]
     u_models = _validate_u_models(univariate_model, num_assets)
@@ -665,8 +707,8 @@ def _predict_dcc(
         Stage 1 (univariate) or Stage 2 (multivariate) optimization fails to converge.
     """
 
-    if returns_matrix.ndim != 2 or returns_matrix.size == 0:
-        raise ValueError("returns_matrix must be a non-empty 2D array")
+    if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
+        raise ValueError("returns_matrix must be a 2D array with at least 10 rows (observations)")
 
     num_assets = returns_matrix.shape[1]
     u_models = _validate_u_models(univariate_model, num_assets)
@@ -714,8 +756,8 @@ def _predict_dbekk(
         If ``returns_matrix`` is invalid or if solver optimization status indicates non-convergence.
     """
 
-    if returns_matrix.ndim != 2 or returns_matrix.size == 0:
-        raise ValueError("returns_matrix must be a non-empty 2D array")
+    if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
+        raise ValueError("returns_matrix must be a 2D array with at least 10 rows (observations)")
 
     try:
         res = robjects.r["r_predict_dbekk"](returns_matrix, asymmetric)
@@ -761,8 +803,8 @@ def _predict_go_garch(
         Stage 1 (ICA component GARCH) or Stage 2 (mixing matrix) optimization fails to converge.
     """
 
-    if returns_matrix.ndim != 2 or returns_matrix.size == 0:
-        raise ValueError("returns_matrix must be a non-empty 2D array")
+    if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
+        raise ValueError("returns_matrix must be a 2D array with at least 10 rows (observations)")
 
     num_assets = returns_matrix.shape[1]
     u_models = _validate_u_models(univariate_model, num_assets)
