@@ -19,7 +19,7 @@ from src.models import (
 #############
 ### Setup ###
 #############
-_DEFAULT_AR_P_GRID = list(range(1, 21))
+_DEFAULT_AR_P_GRID = list(range(21))
 _DEFAULT_VAR_P_GRID = list(range(1, 6))
 _DEFAULT_VAR_LASSO_P_GRID = list(range(1, 21))
 _DEFAULT_ALPHA_GRID = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 0.1]
@@ -108,7 +108,7 @@ def _tune_ar_matrix(
     lags_to_test = list(p_grid) if p_grid else _DEFAULT_AR_P_GRID
 
     # Filter out lag orders larger than window_size - 1
-    valid_lags = [p for p in lags_to_test if 0 < p < window_size]
+    valid_lags = [p for p in lags_to_test if 0 <= p < window_size]
     if not valid_lags:
         raise ValueError("No valid lag orders in p_grid relative to window_size")
 
@@ -639,77 +639,6 @@ def _tune_dbekk(
     return {"asymmetric": best_asym}
 
 
-def _tune_go_garch(
-    window_residuals_list: list[NDArray[np.float64]],
-    test_residuals_matrix: NDArray[np.float64],
-    num_assets: int,
-    u_grid: list[UGARCHModel] | None = None,
-) -> dict[str, Any]:
-    """
-    Tune Generalized Orthogonal GARCH (GO-GARCH) single global univariate specification.
-
-    Evaluates candidate univariate GARCH specifications globally across all ICA components
-    via rolling multivariate log-likelihood (in the same manner as DBEKK).
-
-    Parameters
-    ----------
-    window_residuals_list : list[NDArray[np.float64]]
-        List of 2D in-sample mean residual matrices for each rolling window.
-    test_residuals_matrix : NDArray[np.float64]
-        2D matrix of shape `(K_valid, N)` containing out-of-sample mean test residuals.
-    num_assets : int
-        Total number of asset series.
-    u_grid : list[UGARCHModel] | None, default=None
-        Candidate univariate GARCH specifications for independent components.
-
-    Returns
-    -------
-    dict[str, Any]
-        Dictionary containing `'univariate_model'`: single optimal univariate model specification string.
-
-    Raises
-    ------
-    ValueError
-        If `window_residuals_list` is empty or if no candidate GO-GARCH univariate
-        specification converges across the candidate grid.
-    """
-
-    models_to_test = list(u_grid) if u_grid else _DEFAULT_UGARCH_GRID
-    num_windows = len(window_residuals_list)
-
-    if num_windows == 0:
-        raise ValueError("No rolling window residual data available for tuning GO-GARCH models")
-
-    zero_mean_vec = np.zeros(num_assets, dtype=np.float64)
-    best_u_model = None
-    best_total_ll = -np.inf
-
-    for m in models_to_test:
-        total_ll = 0.0
-        valid_candidate = True
-
-        for k in range(num_windows):
-            window_res = window_residuals_list[k]
-            test_res = test_residuals_matrix[k]
-
-            try:
-                cov_f, _ = predict_volatility(window_res, model="go_garch", univariate_model=m)
-                ll = multivariate_normal_log_likelihood(test_res, mean=zero_mean_vec, cov=cov_f)
-                total_ll += float(ll)
-            except Exception:
-                valid_candidate = False
-                break
-
-        if valid_candidate and total_ll > best_total_ll:
-            best_total_ll = total_ll
-            best_u_model = m
-
-    if best_u_model is None or best_total_ll == -np.inf:
-        raise ValueError("No valid GO-GARCH univariate specification converged across candidate grid")
-
-    return {"univariate_model": best_u_model}
-
-
 ########################
 ### Tuning Functions ###
 ########################
@@ -795,7 +724,7 @@ def tune_volatility_model(
         * `'ccc'`: Tunes univariate GARCH per equation (Stage 1).
         * `'dcc'`: Tunes univariate GARCH per equation (Stage 1) and asymmetric leverage parameter (Stage 2).
         * `'dbekk'`: Tunes asymmetric leverage parameter matrix via rolling multivariate log-likelihood.
-        * `'go_garch'`: Tunes a single global univariate GARCH model via rolling multivariate log-likelihood.
+        * `'go_garch'`: No parameter tuning.
     mean_model : MeanModel, default="naive"
         The mean model used to compute rolling mean forecasts and residuals.
     window_size : int, default=WINDOW_SIZE
@@ -823,7 +752,7 @@ def tune_volatility_model(
     _, num_assets = _validate_returns_matrix(returns_matrix, window_size)
     model_key = model.lower().replace("-", "_")
 
-    if model_key == "naive":
+    if model_key in ("naive", "go_garch"):
         return {}
 
     # Sequentially fit mean model on rolling windows to generate aligned residual arrays
@@ -840,8 +769,6 @@ def tune_volatility_model(
         return _tune_dcc(window_residuals_list, test_residuals_matrix, num_assets=num_assets, **kwargs)
     if model_key == "dbekk":
         return _tune_dbekk(window_residuals_list, test_residuals_matrix, num_assets=num_assets, **kwargs)
-    if model_key == "go_garch":
-        return _tune_go_garch(window_residuals_list, test_residuals_matrix, num_assets=num_assets, **kwargs)
 
     raise ValueError(
         f"unknown volatility model '{model}', supported models are 'naive', 'ccc', 'dcc', 'dbekk', 'go_garch'"

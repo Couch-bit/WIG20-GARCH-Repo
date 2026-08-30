@@ -6,6 +6,7 @@ import rpy2.rinterface_lib.callbacks as rpy2_callbacks
 import rpy2.robjects as robjects
 from numpy.typing import NDArray
 from rpy2.robjects import numpy2ri
+from sklearn.dummy import DummyRegressor
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import Lasso, LinearRegression
 
@@ -210,7 +211,14 @@ r_predict_gogarch <- function(data_mat, u_models) {
   })
   
   mspec <- multispec(uspec_list)
-  gspec <- gogarchspec(mspec, mean.model = list(model = "constant"))
+  gspec <- gogarchspec(
+    mspec, 
+    mean.model = list(model = "constant"),
+    ica = "radical",
+    ica.par = list(
+        augmented = TRUE
+    )
+  )
 
   # This is helpful for removing messages from fitting
   temp_file <- tempfile()
@@ -295,21 +303,26 @@ def predict_ar_single(
     t_obs = series.shape[0]
     if t_obs == 0:
         raise ValueError("series must have non-zero dimension")
-    if p <= 0:
-        raise ValueError(f"p must be a positive integer, got {p}")
+    if p < 0:
+        raise ValueError(f"p must be a nonnegative integer, got {p}")
     if p >= t_obs:
         raise ValueError(f"p ({p}) must be less than sample size ({t_obs})")
 
-    X = np.column_stack([series[p - i - 1 : t_obs - i - 1] for i in range(p)])
-    y = series[p:]
+    if p == 0:
+        # AR(0) - Intercept-only model predicting the mean
+        X = np.zeros((t_obs, 1))
+        y = series
+        model: DummyRegressor | LinearRegression = DummyRegressor(strategy="mean")
+        x_pred = np.zeros((1, 1))
+    else:
+        X = np.column_stack([series[p - i - 1 : t_obs - i - 1] for i in range(p)])
+        y = series[p:]
+        model = LinearRegression()
+        x_pred = series[-p:][::-1].reshape(1, -1)
 
-    model = LinearRegression()
     model.fit(X, y)
-
     fitted_y = model.predict(X)
     residuals = y - fitted_y
-
-    x_pred = series[-p:][::-1].reshape(1, -1)
     forecast = float(model.predict(x_pred)[0])
 
     return forecast, residuals
@@ -399,7 +412,7 @@ def _predict_naive_mean(
 
 def _predict_ar_matrix(
     returns_matrix: NDArray[np.float64],
-    p_list: list[int] | int = 1,
+    p_list: list[int] | int = 0,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
     Calculate 1-step ahead AR forecasts for each asset in a returns matrix.
@@ -409,7 +422,7 @@ def _predict_ar_matrix(
     returns_matrix : NDArray[np.float64]
         A 2D array of shape (T, N) where rows represent time periods and
         columns represent asset returns.
-    p_list : list[int] | int, default=1
+    p_list : list[int] | int, default=0
         Lag order for each series, or a single integer applied to all series.
 
     Returns
