@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Literal, cast
+from typing import Any, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -644,7 +644,7 @@ def _tune_dbekk(
 ########################
 def tune_mean_model(
     returns_matrix: NDArray[np.float64],
-    model: Literal["naive", "ar", "var", "var_lasso"] = "naive",
+    model: MeanModel,
     window_size: int = WINDOW_SIZE,
     **kwargs: Any,
 ) -> dict[str, Any]:
@@ -656,7 +656,7 @@ def tune_mean_model(
     returns_matrix : NDArray[np.float64]
         2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset returns.
-    model : {"naive", "ar", "var", "var_lasso"}, default="naive"
+    model : MeanModel
         The mean model to tune:
 
         * `'naive'`: Returns empty parameter dict (no tuning required).
@@ -699,7 +699,7 @@ def tune_mean_model(
 
 def tune_volatility_model(
     returns_matrix: NDArray[np.float64],
-    model: VolatilityModel = "dcc",
+    model: VolatilityModel,
     mean_model: MeanModel = "naive",
     window_size: int = WINDOW_SIZE,
     mean_kwargs: dict[str, Any] | None = None,
@@ -717,7 +717,7 @@ def tune_volatility_model(
     returns_matrix : NDArray[np.float64]
         2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset returns.
-    model : VolatilityModel, default="dcc"
+    model : VolatilityModel
         The multivariate GARCH volatility model to tune:
 
         * `'naive'`: Sample covariance matrix (no parameter tuning required).
