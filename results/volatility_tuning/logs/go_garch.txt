@@ -1,0 +1,4 @@
+2026-08-30 19:16:08,579 - INFO - [2018-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 3, 'alpha': 0.0001}
+2026-08-30 19:16:08,579 - INFO - [2018-01-03] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-08-30 20:27:13,932 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
+2026-08-30 20:27:13,933 - INFO - [2019-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
