@@ -1,0 +1,2 @@
+2026-08-31 00:42:18,116 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
+2026-08-31 01:07:42,117 - INFO - [2019-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH']}

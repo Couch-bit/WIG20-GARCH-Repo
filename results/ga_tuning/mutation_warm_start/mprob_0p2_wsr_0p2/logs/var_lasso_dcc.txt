@@ -1,0 +1,2 @@
+2026-08-31 00:57:46,743 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
+2026-08-31 02:39:26,590 - WARNING - [2019-01-02] [Volatility Model Tuning] Failed for 'dcc': No valid DCC asymmetric specification converged across candidate grid

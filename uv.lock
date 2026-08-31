@@ -1840,6 +1840,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "deap" },
+    { name = "joblib" },
     { name = "jupyterlab" },
     { name = "matplotlib" },
     { name = "numpy" },
@@ -1867,6 +1868,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "deap", specifier = ">=1.4.1,<2.0.0" },
+    { name = "joblib", specifier = ">=1.4.0,<2.0.0" },
     { name = "jupyterlab", specifier = ">=4.0.0,<5.0.0" },
     { name = "matplotlib", specifier = ">=3.8.0,<4.0.0" },
     { name = "numpy", specifier = ">=2.0.0,<2.5.0" },

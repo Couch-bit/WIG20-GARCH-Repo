@@ -5,6 +5,7 @@ version = "0.1.0"
 requires-python = "==3.11.15"
 dependencies = [
     "deap>=1.4.1,<2.0.0",
+    "joblib>=1.4.0,<2.0.0",
     "jupyterlab>=4.0.0,<5.0.0",
     "matplotlib>=3.8.0,<4.0.0",
     "numpy>=2.0.0,<2.5.0",

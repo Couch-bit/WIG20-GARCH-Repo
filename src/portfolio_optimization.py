@@ -12,7 +12,7 @@ from src.config import TOTAL_TOKENS
 def optimize_portfolio(
     returns_matrix: NDArray[np.float64],
     metric_func: Callable[[NDArray[np.float64], NDArray[np.float64]], float],
-    ngen: int = 40,
+    ngen: int = 80,
     pop_size: int = 100,
     cxpb: float = 0.7,
     mutpb: float = 0.2,
@@ -34,7 +34,7 @@ def optimize_portfolio(
     metric_func : Callable[[NDArray[np.float64], NDArray[np.float64]], float]
         A evaluation callable accepting `returns_matrix` (2D) and a 1D numpy array of
         portfolio weights, returning a numeric metric float.
-    ngen : int, default=40
+    ngen : int, default=80
         Number of evolution generations.
     pop_size : int, default=100
         Number of individuals in the population.
