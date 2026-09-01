@@ -1,0 +1,202 @@
+2026-09-01 08:31:34,730 - INFO - [2020-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-09-01 08:55:54,450 - WARNING - [2020-01-02] [Volatility Model Tuning] Failed for 'dcc': No valid DCC asymmetric specification converged across candidate grid
+2026-09-01 09:49:57,509 - INFO - [2021-01-04] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-09-01 10:14:37,143 - WARNING - [2021-01-04] [Volatility Model Tuning] Failed for 'dcc': No valid DCC asymmetric specification converged across candidate grid
+2026-09-01 11:06:32,563 - INFO - [2022-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 5, 'alpha': 0.0001}
+2026-09-01 13:07:23,156 - INFO - [2022-01-03] [Volatility Model Tuning] Tuned parameters for 'dcc': {'asymmetric': False, 'univariate_model': ['sGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'sGARCH']}
+2026-09-01 13:31:49,128 - WARNING - [2022-06-23] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.62995e-35
+
+2026-09-01 13:31:49,128 - WARNING - [2022-06-23] Falling back to naive model optimization
+2026-09-01 13:31:49,129 - WARNING - [2022-06-23] Falling back to previous weights
+2026-09-01 13:32:23,533 - WARNING - [2022-06-28] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 4.99403e-36
+
+2026-09-01 13:32:23,533 - WARNING - [2022-06-28] Falling back to naive model optimization
+2026-09-01 13:32:23,534 - WARNING - [2022-06-28] Falling back to previous weights
+2026-09-01 13:32:33,183 - WARNING - [2022-06-29] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 3.34071e-19
+
+2026-09-01 13:32:33,183 - WARNING - [2022-06-29] Falling back to naive model optimization
+2026-09-01 13:32:33,184 - WARNING - [2022-06-29] Falling back to previous weights
+2026-09-01 13:33:33,693 - WARNING - [2022-07-06] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 5.19159e-34
+
+2026-09-01 13:33:33,693 - WARNING - [2022-07-06] Falling back to naive model optimization
+2026-09-01 13:33:33,694 - WARNING - [2022-07-06] Falling back to previous weights
+2026-09-01 13:34:08,794 - WARNING - [2022-07-11] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.53119e-36
+
+2026-09-01 13:34:08,794 - WARNING - [2022-07-11] Falling back to naive model optimization
+2026-09-01 13:34:08,795 - WARNING - [2022-07-11] Falling back to previous weights
+2026-09-01 13:34:18,325 - WARNING - [2022-07-12] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.02581e-36
+
+2026-09-01 13:34:18,325 - WARNING - [2022-07-12] Falling back to naive model optimization
+2026-09-01 13:34:18,326 - WARNING - [2022-07-12] Falling back to previous weights
+2026-09-01 13:34:28,286 - WARNING - [2022-07-13] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 4.79354e-37
+
+2026-09-01 13:34:28,286 - WARNING - [2022-07-13] Falling back to naive model optimization
+2026-09-01 13:34:28,287 - WARNING - [2022-07-13] Falling back to previous weights
+2026-09-01 13:34:37,285 - WARNING - [2022-07-14] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 8.26992e-40
+
+2026-09-01 13:34:37,285 - WARNING - [2022-07-14] Falling back to naive model optimization
+2026-09-01 13:34:37,286 - WARNING - [2022-07-14] Falling back to previous weights
+2026-09-01 13:34:46,529 - WARNING - [2022-07-15] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.57545e-36
+
+2026-09-01 13:34:46,529 - WARNING - [2022-07-15] Falling back to naive model optimization
+2026-09-01 13:34:46,530 - WARNING - [2022-07-15] Falling back to previous weights
+2026-09-01 13:34:55,607 - WARNING - [2022-07-18] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 6.54165e-37
+
+2026-09-01 13:34:55,607 - WARNING - [2022-07-18] Falling back to naive model optimization
+2026-09-01 13:34:55,607 - WARNING - [2022-07-18] Falling back to previous weights
+2026-09-01 13:35:04,905 - WARNING - [2022-07-19] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.15047e-36
+
+2026-09-01 13:35:04,905 - WARNING - [2022-07-19] Falling back to naive model optimization
+2026-09-01 13:35:04,905 - WARNING - [2022-07-19] Falling back to previous weights
+2026-09-01 13:35:59,099 - WARNING - [2022-07-26] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 3.0344e-36
+
+2026-09-01 13:35:59,099 - WARNING - [2022-07-26] Falling back to naive model optimization
+2026-09-01 13:35:59,100 - WARNING - [2022-07-26] Falling back to previous weights
+2026-09-01 13:36:41,851 - WARNING - [2022-08-01] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 4.16581e-36
+
+2026-09-01 13:36:41,851 - WARNING - [2022-08-01] Falling back to naive model optimization
+2026-09-01 13:36:52,180 - WARNING - [2022-08-02] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 3.00524e-25
+
+2026-09-01 13:36:52,180 - WARNING - [2022-08-02] Falling back to naive model optimization
+2026-09-01 13:36:52,180 - WARNING - [2022-08-02] Falling back to previous weights
+2026-09-01 13:37:11,266 - WARNING - [2022-08-04] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 4.75248e-36
+
+2026-09-01 13:37:11,266 - WARNING - [2022-08-04] Falling back to naive model optimization
+2026-09-01 13:37:11,267 - WARNING - [2022-08-04] Falling back to previous weights
+2026-09-01 13:37:19,628 - WARNING - [2022-08-05] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.60089e-37
+
+2026-09-01 13:37:19,628 - WARNING - [2022-08-05] Falling back to naive model optimization
+2026-09-01 13:37:19,629 - WARNING - [2022-08-05] Falling back to previous weights
+2026-09-01 13:37:27,859 - WARNING - [2022-08-08] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.01803e-35
+
+2026-09-01 13:37:27,859 - WARNING - [2022-08-08] Falling back to naive model optimization
+2026-09-01 13:37:27,860 - WARNING - [2022-08-08] Falling back to previous weights
+2026-09-01 13:37:36,434 - WARNING - [2022-08-09] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.01039e-36
+
+2026-09-01 13:37:36,434 - WARNING - [2022-08-09] Falling back to naive model optimization
+2026-09-01 13:37:36,435 - WARNING - [2022-08-09] Falling back to previous weights
+2026-09-01 13:37:44,681 - WARNING - [2022-08-10] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 9.72335e-37
+
+2026-09-01 13:37:44,681 - WARNING - [2022-08-10] Falling back to naive model optimization
+2026-09-01 13:37:44,682 - WARNING - [2022-08-10] Falling back to previous weights
+2026-09-01 13:37:53,096 - WARNING - [2022-08-11] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.0685e-36
+
+2026-09-01 13:37:53,096 - WARNING - [2022-08-11] Falling back to naive model optimization
+2026-09-01 13:37:53,096 - WARNING - [2022-08-11] Falling back to previous weights
+2026-09-01 13:38:12,422 - WARNING - [2022-08-16] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 6.27582e-37
+
+2026-09-01 13:38:12,422 - WARNING - [2022-08-16] Falling back to naive model optimization
+2026-09-01 13:38:12,423 - WARNING - [2022-08-16] Falling back to previous weights
+2026-09-01 13:38:20,762 - WARNING - [2022-08-17] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.51419e-37
+
+2026-09-01 13:38:20,763 - WARNING - [2022-08-17] Falling back to naive model optimization
+2026-09-01 13:38:20,763 - WARNING - [2022-08-17] Falling back to previous weights
+2026-09-01 13:38:39,967 - WARNING - [2022-08-19] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.85811e-36
+
+2026-09-01 13:38:39,967 - WARNING - [2022-08-19] Falling back to naive model optimization
+2026-09-01 13:38:39,968 - WARNING - [2022-08-19] Falling back to previous weights
+2026-09-01 13:38:58,666 - WARNING - [2022-08-23] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 8.70624e-37
+
+2026-09-01 13:38:58,666 - WARNING - [2022-08-23] Falling back to naive model optimization
+2026-09-01 13:38:58,667 - WARNING - [2022-08-23] Falling back to previous weights
+2026-09-01 13:39:07,202 - WARNING - [2022-08-24] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 5.72307e-37
+
+2026-09-01 13:39:07,203 - WARNING - [2022-08-24] Falling back to naive model optimization
+2026-09-01 13:39:07,203 - WARNING - [2022-08-24] Falling back to previous weights
+2026-09-01 13:39:15,410 - WARNING - [2022-08-25] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 3.26661e-36
+
+2026-09-01 13:39:15,411 - WARNING - [2022-08-25] Falling back to naive model optimization
+2026-09-01 13:39:15,411 - WARNING - [2022-08-25] Falling back to previous weights
+2026-09-01 13:39:24,090 - WARNING - [2022-08-26] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 5.97999e-37
+
+2026-09-01 13:39:24,090 - WARNING - [2022-08-26] Falling back to naive model optimization
+2026-09-01 13:39:24,091 - WARNING - [2022-08-26] Falling back to previous weights
+2026-09-01 13:39:43,101 - WARNING - [2022-08-30] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.24543e-35
+
+2026-09-01 13:39:43,101 - WARNING - [2022-08-30] Falling back to naive model optimization
+2026-09-01 13:39:43,102 - WARNING - [2022-08-30] Falling back to previous weights
+2026-09-01 13:40:54,093 - WARNING - [2022-09-08] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 3.65471e-36
+
+2026-09-01 13:40:54,093 - WARNING - [2022-09-08] Falling back to naive model optimization
+2026-09-01 13:40:54,094 - WARNING - [2022-09-08] Falling back to previous weights
+2026-09-01 13:41:02,322 - WARNING - [2022-09-09] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.05888e-36
+
+2026-09-01 13:41:02,322 - WARNING - [2022-09-09] Falling back to naive model optimization
+2026-09-01 13:41:02,323 - WARNING - [2022-09-09] Falling back to previous weights
+2026-09-01 13:41:21,061 - WARNING - [2022-09-13] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 7.79015e-36
+
+2026-09-01 13:41:21,061 - WARNING - [2022-09-13] Falling back to naive model optimization
+2026-09-01 13:41:21,062 - WARNING - [2022-09-13] Falling back to previous weights
+2026-09-01 13:42:00,792 - WARNING - [2022-09-19] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.20219e-36
+
+2026-09-01 13:42:00,792 - WARNING - [2022-09-19] Falling back to naive model optimization
+2026-09-01 13:42:00,792 - WARNING - [2022-09-19] Falling back to previous weights
+2026-09-01 13:43:22,713 - WARNING - [2022-09-29] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 6.65808e-33
+
+2026-09-01 13:43:22,714 - WARNING - [2022-09-29] Falling back to naive model optimization
+2026-09-01 13:43:22,714 - WARNING - [2022-09-29] Falling back to previous weights
+2026-09-01 13:46:06,613 - WARNING - [2022-10-21] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 2.56855e-37
+
+2026-09-01 13:46:06,613 - WARNING - [2022-10-21] Falling back to naive model optimization
+2026-09-01 13:46:06,613 - WARNING - [2022-10-21] Falling back to previous weights
+2026-09-01 13:46:25,446 - WARNING - [2022-10-25] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 6.82341e-38
+
+2026-09-01 13:46:25,446 - WARNING - [2022-10-25] Falling back to naive model optimization
+2026-09-01 13:46:25,447 - WARNING - [2022-10-25] Falling back to previous weights
+2026-09-01 13:53:29,472 - WARNING - [2022-12-23] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.16177e-27
+
+2026-09-01 13:53:29,472 - WARNING - [2022-12-23] Falling back to naive model optimization
+2026-09-01 13:53:29,473 - WARNING - [2022-12-23] Falling back to previous weights
+2026-09-01 13:53:37,789 - WARNING - [2022-12-27] Volatility model execution failed for 'dcc': DCC estimation failed: Error in solve.default(A) : 
+  system is computationally singular: reciprocal condition number = 1.7074e-29
+
+2026-09-01 13:53:37,790 - WARNING - [2022-12-27] Falling back to naive model optimization
+2026-09-01 13:53:37,790 - WARNING - [2022-12-27] Falling back to previous weights
+2026-09-01 13:59:08,355 - INFO - [2023-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 1, 'alpha': 0.001}
+2026-09-01 14:26:00,048 - WARNING - [2023-01-02] [Volatility Model Tuning] Failed for 'dcc': No valid DCC asymmetric specification converged across candidate grid
+2026-09-01 14:56:23,328 - WARNING - [2023-10-25] Volatility model execution failed for 'dcc': DCC estimation failed: Error in (function (data_mat, asymmetric, u_models)  : 
+  DCC Stage 1 (Univariate GARCH) failed to converge for asset(s): 5
+
+2026-09-01 14:56:23,329 - WARNING - [2023-10-25] Falling back to naive model optimization
+2026-09-01 14:56:23,330 - WARNING - [2023-10-25] Falling back to previous weights
+2026-09-01 14:57:09,162 - WARNING - [2023-11-03] Volatility model execution failed for 'dcc': DCC estimation failed: Error in (function (data_mat, asymmetric, u_models)  : 
+  DCC Stage 1 (Univariate GARCH) failed to converge for asset(s): 5
+
+2026-09-01 14:57:09,162 - WARNING - [2023-11-03] Falling back to naive model optimization
+2026-09-01 14:57:09,163 - WARNING - [2023-11-03] Falling back to previous weights

@@ -1,0 +1,8 @@
+2026-08-31 17:54:09,732 - INFO - [2020-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-08-31 17:54:09,732 - INFO - [2020-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-08-31 19:25:36,469 - INFO - [2021-01-04] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-08-31 19:25:36,470 - INFO - [2021-01-04] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-08-31 20:52:37,558 - INFO - [2022-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 5, 'alpha': 0.0001}
+2026-08-31 20:52:37,560 - INFO - [2022-01-03] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-08-31 22:07:53,777 - INFO - [2023-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 1, 'alpha': 0.001}
+2026-08-31 22:07:53,777 - INFO - [2023-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
