@@ -59,7 +59,7 @@ def _align_model_kwargs(
     kwargs: dict[str, Any],
     tune_cols: list[str],
     current_cols: list[str],
-    default_p: int = 1,
+    default_p: int = 0,
     default_spec: str = "sGARCH",
 ) -> dict[str, Any]:
     """
@@ -77,7 +77,7 @@ def _align_model_kwargs(
         List of asset column names that were valid and present during the tuning phase.
     current_cols : list[str]
         List of asset column names currently valid in the daily evaluation window.
-    default_p : int, default=1
+    default_p : int, default=0
         Fallback AR lag order assigned to assets present in `current_cols` but missing
         from `tune_cols`.
     default_spec : str, default="sGARCH"
