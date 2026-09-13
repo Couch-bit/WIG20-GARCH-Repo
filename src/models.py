@@ -473,7 +473,7 @@ def _predict_ar_matrix(
 def _predict_var_lasso(
     returns_matrix: NDArray[np.float64],
     p: int = 1,
-    alpha: float = 1.0,
+    alpha: float = 0,
     tol: float = 1e-4,
     max_iter: int = 10000,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
@@ -487,7 +487,7 @@ def _predict_var_lasso(
         columns represent asset returns.
     p : int, default=1
         The lag order for the VAR model.
-    alpha : float, default=1.0
+    alpha : float, default=0
         Lasso regularization strength parameter.
     tol : float, default=1e-4
         Tolerance for optimization convergence.

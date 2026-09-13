@@ -202,7 +202,7 @@ def _tune_var(
             test_obs = returns_matrix[start_idx + window_size]
 
             try:
-                fcst, res = predict_mean(window_data, "var", p=p, alpha=0.0)
+                fcst, res = predict_mean(window_data, "var", p=p)
                 n_samples = res.shape[0]
                 cov_in = (res.T @ res) / n_samples
                 cov_in += np.eye(num_assets) * cov_eps
