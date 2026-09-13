@@ -1,6 +1,6 @@
 # WIG20-GARCH-Repo
 
-Repozytorium udokumentowujące kod wykorzystany do pracy magisterskiej "Empiryczne własności modeli zmienności w przypadku wysokowymiarowych danych giełdowych". **Skrypt i kod zakładają, że są wykonywane na Windows 11 64-bit (Intel lub AMD, a nie ARM64)**. Środowiska zostały tak zbudowane, aby oferowały największą możliwą powtarzalność bez zakładania globalnych instalacji Python oraz R. Wymagane są jednak [uv](https://github.com/astral-sh/uv/releases/tag/0.11.7) oraz [rig](https://github.com/r-lib/rig/releases/tag/v0.8.1) dla których warto się trzymać wskazanych wersji. Istotne jest, że mimo, że ten plik jest napisany po polsku, to sam kod i komentarze wykorzystują język angielski.
+Repozytorium udokumentowuje kod wykorzystany do pracy magisterskiej "Empiryczne własności modeli zmienności w przypadku wysokowymiarowych danych giełdowych". **Skrypt i kod zakładają, że są wykonywane na Windows 11 64-bit (Intel lub AMD, a nie ARM64)**. Środowiska zostały tak zbudowane, aby oferowały największą możliwą powtarzalność bez zakładania globalnych instalacji Python oraz R. Wymagane są jednak [uv](https://github.com/astral-sh/uv/releases/tag/0.11.7) oraz [rig](https://github.com/r-lib/rig/releases/tag/v0.8.1) dla których warto się trzymać wskazanych wersji. Istotne jest, że mimo, że ten plik jest napisany po polsku, to sam kod i komentarze wykorzystują język angielski.
 
 ## Środowisko
 
@@ -45,3 +45,30 @@ Wykorzystane dane znajdują w folderze `data/stocks/` w postaci plików `.csv` n
 Pobrano miesięczne stopy zwrotu dla 10-letnich obligacji rządowych z notowań serwisu [stooq.pl](https://stooq.pl/). Stopa zwrotu wolna od ryzyka na następny miesiąc została przyjęta jako najniższa stopa zwrotu z poprzedniego miesiąca według tych danych. Dokładniej, wykorzystano miesięczne dane od początku roku 2014 do końca lipca 2026. Dane zostały pobrane dnia 15 sierpnia w godzinach popołudniowych z pomocą [linku](https://stooq.pl/q/d/?f=20140101&t=20260731&s=10yply.b&c=0&i=m) i są zawarte w pliku `data/10yply_b_m.csv`.
 
 Ostatecznie zdecydowano się również pobrać notowania samego indeksu WIG20 do celów porównawczych. Dokonano tego wykorzystując serwis [investing.com](https://www.investing.com/indices/wig-20-historical-data) dnia 18 sierpnia przed rozpoczęciem handlu na giełdzie. Dane są zawarte w pliku `data/wig20.csv`.
+
+## Pliki źródłowe
+
+Funkcjonalność dotycząca dopasowywania modeli, obliczania wskaźników i optymalizowania/ewaluacji portfeli znajdują się w folderze `src/`.
+
+| Nazwa pliku | Do czego służy? |
+| :--- | :--- |
+| `config.py` | Zawiera najważniejsze stałe wykorzystywane przy analizach, ale nie jest używany przez inne pliki `.py`. |
+| `metrics.py` | Zawiera implementacje metryk, czyli log-wiarygodności dla rozkładu normalnego, ES i zdefiniowanych w pracy ilorazów. |
+| `model_optimization.py` | Zawiera funkcje wykorzystywane do tuningu hiperparametrów modeli. |
+| `models.py` | Zawiera implemetancję modeli zarówno w R jak i Python. |
+| `portfolio_optimization.py` | Zawiera implementację GA wykorzystywanego do optymalizacji portfeli. |
+| `simulation.py` | Zawiera funkcję, która wykonuje testowanie wsteczne uwzględniając zarówno log-wiarygodność jak i budowane portfele. |
+
+## Notatniki Jupyter
+
+Faktyczna analiza znajduje się w notatnikach Jupyter i jest podzielona tematycznie w folderze `notebooks/`.
+
+| Nazwa pliku | Do czego służy? |
+| :--- | :--- |
+| `data_exploration.ipynb` | Zawiera eksplorację pobranych danych i dopasowanie przykładowych modeli. |
+| `data_preparation.ipynb` | Zawiera przygotowanie danych do użytku przez inne notatniki. |
+| `execution_testing.ipynb` | Sprawdza czy wybrane funkcje działają poprawnie i szybko. |
+| `ga_parameter_tuning.ipynb` | Zawiera tuning hiperparametrów GA. |
+| `model_tuning.ipynb` | Zawiera tuning modeli średniej i wariancji. |
+| `test_evaluation.ipynb` | Zawiera testowanie wsteczne na zbiorze testowym wraz z wizualizacjami wyników. |
+| `volatility_model_benchmark.ipynb` | Zawiera sprawdzenie szybkości dopasowywania modeli wariancji. |
