@@ -1,4 +1,4 @@
-2026-09-11 20:23:45,658 - INFO - [2018-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 3, 'alpha': 0.0001}
-2026-09-11 20:23:45,658 - INFO - [2018-01-03] [Volatility Model Tuning] Tuned parameters for 'naive': {}
-2026-09-11 20:26:24,980 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
-2026-09-11 20:26:24,981 - INFO - [2019-01-02] [Volatility Model Tuning] Tuned parameters for 'naive': {}
+2026-09-13 16:00:33,872 - INFO - [2018-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 3, 'alpha': 0.0001}
+2026-09-13 16:00:33,872 - INFO - [2018-01-03] [Volatility Model Tuning] Tuned parameters for 'naive': {}
+2026-09-13 16:03:34,073 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
+2026-09-13 16:03:34,073 - INFO - [2019-01-02] [Volatility Model Tuning] Tuned parameters for 'naive': {}

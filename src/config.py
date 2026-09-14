@@ -9,9 +9,6 @@ TUNE_END = "2019-12-31"
 # Window size can be changed here, but 500 is typical for GARCH
 WINDOW_SIZE = 500
 
-# Total tokens in optimization can also be tuned here
-TOTAL_TOKENS = 1000
-
 # Which models should be tested in the evaluation
 EVAL_MEAN_MODELS = ["naive", "ar", "var", "var_lasso"]
 EVAL_VOLATILITY_MODELS = ["naive", "ccc", "dcc", "go_garch"]

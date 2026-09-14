@@ -26,6 +26,13 @@ library(rugarch)
 library(rmgarch)
 library(BEKKs)
 
+Sys.setenv(OMP_NUM_THREADS = "1")
+Sys.setenv(MKL_NUM_THREADS = "1")
+if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
+  RhpcBLASctl::blas_set_num_threads(1)
+  RhpcBLASctl::omp_set_num_threads(1)
+}
+
 extract_H_t <- function(H_obj, t_idx, T_obs, N_val) {
   if (is.list(H_obj)) return(H_obj[[t_idx]])
   d <- dim(H_obj)
@@ -38,6 +45,8 @@ extract_H_t <- function(H_obj, t_idx, T_obs, N_val) {
 }
 
 r_predict_ugarch <- function(series, model_type) {
+  set.seed(42)
+
   spec <- ugarchspec(
     variance.model = list(model = model_type, garchOrder = c(1, 1)),
     mean.model = list(armaOrder = c(0, 0), include.mean = FALSE)
@@ -57,6 +66,8 @@ r_predict_ugarch <- function(series, model_type) {
 }
 
 r_predict_ccc <- function(data_mat, u_models) {
+  set.seed(42)
+
   N <- ncol(data_mat)
   if (length(u_models) == 1) {
     u_models <- rep(u_models, N)
@@ -98,6 +109,8 @@ r_predict_ccc <- function(data_mat, u_models) {
 }
 
 r_predict_dcc <- function(data_mat, asymmetric, u_models) {
+  set.seed(42)
+
   N <- ncol(data_mat)
   T_obs <- nrow(data_mat)
   if (length(u_models) == 1) {
@@ -149,6 +162,8 @@ r_predict_dcc <- function(data_mat, asymmetric, u_models) {
 }
 
 r_predict_dbekk <- function(data_mat, asymmetric) {
+  set.seed(42)
+
   fit <- tryCatch({
     spec <- bekk_spec(model = list(type = "dbekk", asymmetric = asymmetric))
     bekk_fit(spec, data = data_mat)
@@ -197,6 +212,8 @@ r_predict_dbekk <- function(data_mat, asymmetric) {
 }
 
 r_predict_gogarch <- function(data_mat, u_models) {
+  set.seed(42)
+
   N <- ncol(data_mat)
   T_obs <- nrow(data_mat)
   if (length(u_models) == 1) {
@@ -281,7 +298,7 @@ def predict_ar_single(
     Parameters
     ----------
     series : NDArray[np.float64]
-        A 1D array of shape (T,) representing return observations.
+        A 1D array of shape `(T,)` representing return observations.
     p : int
         The lag order for the autoregressive model.
 
@@ -290,7 +307,7 @@ def predict_ar_single(
     forecast : float
         The 1-step ahead forecast value.
     residuals : NDArray[np.float64]
-        A 1D array of shape (T - p,) containing in-sample residuals.
+        A 1D array of shape `(T - p,)` containing in-sample residuals.
 
     Raises
     ------
@@ -333,27 +350,27 @@ def predict_univariate_garch(
     model: UGARCHModel | str = "sGARCH",
 ) -> tuple[float, NDArray[np.float64]]:
     """
-    Fit a 1-lag univariate GARCH model to zero-mean residuals using R's ``rugarch``.
+    Fit a 1-lag univariate GARCH model to zero-mean residuals using R's `rugarch`.
 
     Parameters
     ----------
     series : NDArray[np.float64]
-        A 1D array of shape ``(T,)`` containing zero-mean residuals from a mean model.
+        A 1D array of shape `(T,)` containing zero-mean residuals from a mean model.
     model : UGARCHModel | str, default="sGARCH"
-        R ``rugarch`` model specification. Must be one of ``'sGARCH'`` (Standard GARCH),
-        ``'eGARCH'`` (Exponential GARCH), or ``'gjrGARCH'`` (GJR-GARCH).
+        R `rugarch` model specification. Must be one of `'sGARCH'` (Standard GARCH),
+        `'eGARCH'` (Exponential GARCH), or `'gjrGARCH'` (GJR-GARCH).
 
     Returns
     -------
     var_forecast : float
         The 1-step ahead conditional variance forecast.
     std_residuals : NDArray[np.float64]
-        A 1D array of shape ``(T,)`` containing in-sample standardized residuals.
+        A 1D array of shape `(T,)` containing in-sample standardized residuals.
 
     Raises
     ------
     ValueError
-        If ``series`` is invalid, if ``model`` is unsupported, or if model fitting
+        If `series` is invalid, if `model` is unsupported, or if model fitting
         fails to converge.
     """
 
@@ -383,15 +400,15 @@ def _predict_naive_mean(
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape (T, N) where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset returns.
 
     Returns
     -------
     forecasts : NDArray[np.float64]
-        A 1D array of shape (N,) containing the historical mean forecast.
+        A 1D array of shape `(N,)` containing the historical mean forecast.
     residuals : NDArray[np.float64]
-        A 2D array of shape (T, N) containing in-sample residuals.
+        A 2D array of shape `(T, N)` containing in-sample residuals.
 
     Raises
     ------
@@ -420,7 +437,7 @@ def _predict_ar_matrix(
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape (T, N) where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset returns.
     p_list : list[int] | int, default=0
         Lag order for each series, or a single integer applied to all series.
@@ -428,9 +445,9 @@ def _predict_ar_matrix(
     Returns
     -------
     forecasts : NDArray[np.float64]
-        A 1D array of shape (N,) containing 1-step ahead AR forecasts.
+        A 1D array of shape `(N,)` containing 1-step ahead AR forecasts.
     residuals : NDArray[np.float64]
-        A 2D array of shape (T - p_max, N) containing aligned residuals.
+        A 2D array of shape `(T - p_max, N)` containing aligned residuals.
 
     Raises
     ------
@@ -476,6 +493,7 @@ def _predict_var_lasso(
     alpha: float = 0,
     tol: float = 1e-4,
     max_iter: int = 10000,
+    random_state: int | np.random.RandomState = 42,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
     Calculate 1-step ahead VAR(p) forecast with Lasso regularization.
@@ -483,7 +501,7 @@ def _predict_var_lasso(
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape (T, N) where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset returns.
     p : int, default=1
         The lag order for the VAR model.
@@ -493,13 +511,16 @@ def _predict_var_lasso(
         Tolerance for optimization convergence.
     max_iter : int, default=10000
         Maximum number of iterations for coordinate descent.
+    random_state : int | np.random.RandomState, default=42
+        Determines random number generation for coordinate descent in Lasso.
+        Pass an int for reproducible output across multiple function calls.
 
     Returns
     -------
     forecasts : NDArray[np.float64]
-        A 1D array of shape (N,) containing 1-step ahead VAR-Lasso forecasts.
+        A 1D array of shape `(N,)` containing 1-step ahead VAR-Lasso forecasts.
     residuals : NDArray[np.float64]
-        A 2D array of shape (T - p, N) containing in-sample residuals.
+        A 2D array of shape `(T - p, N)` containing in-sample residuals.
 
     Raises
     ------
@@ -530,7 +551,7 @@ def _predict_var_lasso(
         model: Lasso | LinearRegression = LinearRegression()
         model.fit(X, Y)
     else:
-        model = Lasso(alpha=alpha, tol=tol, max_iter=max_iter)
+        model = Lasso(alpha=alpha, tol=tol, max_iter=max_iter, random_state=random_state)
         # Fail fast if Lasso doesn't converge
         with warnings.catch_warnings():
             warnings.filterwarnings("error", category=ConvergenceWarning)
@@ -558,16 +579,16 @@ def _predict_naive_cov(
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape (T, N) containing zero-mean residuals from a mean model.
+        A 2D array of shape `(T, N)` containing zero-mean residuals from a mean model.
     cov_eps : float, default=1e-8
         Minimum eigenvalue floor to prevent numerical instability during matrix square root inverse.
 
     Returns
     -------
     cov_forecast : NDArray[np.float64]
-        A 2D array of shape (N, N) containing the sample covariance matrix forecast.
+        A 2D array of shape `(N, N)` containing the sample covariance matrix forecast.
     std_residuals : NDArray[np.float64]
-        A 2D array of shape (T, N) containing in-sample standardized residuals.
+        A 2D array of shape `(T, N)` containing in-sample standardized residuals.
 
     Raises
     ------
@@ -606,12 +627,12 @@ def _validate_u_models(
     Returns
     -------
     list[str]
-        A list of validated model string identifiers matching R ``rugarch`` syntax.
+        A list of validated model string identifiers matching R `rugarch` syntax.
 
     Raises
     ------
     ValueError
-        If any model string is invalid or if sequence length does not equal 1 or ``num_assets``.
+        If any model string is invalid or if sequence length does not equal 1 or `num_assets`.
     """
 
     if isinstance(u_model, str):
@@ -639,30 +660,30 @@ def _predict_ccc(
     Calculate 1-step ahead Constant Conditional Correlation (CCC-GARCH) covariance forecast.
 
     Fits univariate GARCH(1,1) models to each asset series and combines them using a constant
-    conditional correlation matrix via R's ``rmgarch`` package.
+    conditional correlation matrix via R's `rmgarch` package.
 
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset residuals from a mean model.
     univariate_model : UGARCHModel | list[UGARCHModel], default="sGARCH"
         Univariate GARCH model specification(s). Can be a single model string applied
-        to all assets or a list of model strings matching the number of assets ``N``.
-        Supported options are ``'sGARCH'``, ``'eGARCH'``, and ``'gjrGARCH'``.
+        to all assets or a list of model strings matching the number of assets `N`.
+        Supported options are `'sGARCH'`, `'eGARCH'`, and `'gjrGARCH'`.
 
     Returns
     -------
     cov_forecast : NDArray[np.float64]
-        A 2D array of shape ``(N, N)`` containing the 1-step ahead conditional covariance
+        A 2D array of shape `(N, N)` containing the 1-step ahead conditional covariance
         matrix forecast.
     std_residuals : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` containing in-sample standardized residuals.
+        A 2D array of shape `(T, N)` containing in-sample standardized residuals.
 
     Raises
     ------
     ValueError
-        If ``returns_matrix`` is invalid, if ``univariate_model`` fails validation, or if
+        If `returns_matrix` is invalid, if `univariate_model` fails validation, or if
         Stage 1 (univariate) or Stage 2 (multivariate) optimization fails to converge.
     """
 
@@ -690,33 +711,33 @@ def _predict_dcc(
     Calculate 1-step ahead Dynamic Conditional Correlation (DCC or ADCC) covariance forecast.
 
     Fits univariate GARCH(1,1) models to each asset series and estimates time-varying
-    conditional correlations via R's ``rmgarch`` package.
+    conditional correlations via R's `rmgarch` package.
 
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset residuals from a mean model.
     asymmetric : bool, default=False
-        If ``True``, estimates an Asymmetric DCC (aDCC) model incorporating leverage
+        If `True`, estimates an Asymmetric DCC (aDCC) model incorporating leverage
         effects in conditional correlation dynamics.
     univariate_model : UGARCHModel | list[UGARCHModel], default="sGARCH"
         Univariate GARCH model specification(s). Can be a single model string applied
-        to all assets or a sequence of model strings matching the number of assets ``N``.
-        Supported options are ``'sGARCH'``, ``'eGARCH'``, and ``'gjrGARCH'``.
+        to all assets or a sequence of model strings matching the number of assets `N`.
+        Supported options are `'sGARCH'`, `'eGARCH'`, and `'gjrGARCH'`.
 
     Returns
     -------
     cov_forecast : NDArray[np.float64]
-        A 2D array of shape ``(N, N)`` containing the 1-step ahead conditional covariance
+        A 2D array of shape `(N, N)` containing the 1-step ahead conditional covariance
         matrix forecast.
     std_residuals : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` containing in-sample standardized residuals.
+        A 2D array of shape `(T, N)` containing in-sample standardized residuals.
 
     Raises
     ------
     ValueError
-        If ``returns_matrix`` is invalid, if ``univariate_model`` fails validation, or if
+        If `returns_matrix` is invalid, if `univariate_model` fails validation, or if
         Stage 1 (univariate) or Stage 2 (multivariate) optimization fails to converge.
     """
 
@@ -742,31 +763,31 @@ def _predict_dbekk(
     """
     Calculate 1-step ahead Diagonal BEKK (DBEKK) covariance forecast.
 
-    Fits a Diagonal BEKK multivariate GARCH model via R's ``BEKKs`` package. Standardized
+    Fits a Diagonal BEKK multivariate GARCH model via R's `BEKKs` package. Standardized
     residuals are computed manually using spectral matrix
     decomposition of fitted covariance matrices.
 
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset residuals from a mean model.
     asymmetric : bool, default=False
-        If ``True``, incorporates asymmetric leverage term matrix into the
+        If `True`, incorporates asymmetric leverage term matrix into the
         BEKK variance recursion equation.
 
     Returns
     -------
     cov_forecast : NDArray[np.float64]
-        A 2D array of shape ``(N, N)`` containing the 1-step ahead conditional covariance
+        A 2D array of shape `(N, N)` containing the 1-step ahead conditional covariance
         matrix forecast.
     std_residuals : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` containing in-sample standardized residuals.
+        A 2D array of shape `(T, N)` containing in-sample standardized residuals.
 
     Raises
     ------
     ValueError
-        If ``returns_matrix`` is invalid or if solver optimization status indicates non-convergence.
+        If `returns_matrix` is invalid or if solver optimization status indicates non-convergence.
     """
 
     if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
@@ -789,30 +810,30 @@ def _predict_go_garch(
     Calculate 1-step ahead Generalized Orthogonal GARCH (GO-GARCH) covariance forecast.
 
     Decomposes the multivariate return series into independent components using Independent
-    Component Analysis (ICA) and models component dynamics via R's ``rmgarch`` package.
+    Component Analysis (ICA) and models component dynamics via R's `rmgarch` package.
 
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset residuals from a mean model.
     univariate_model : UGARCHModel | list[UGARCHModel], default="sGARCH"
         Univariate GARCH model specification(s) for ICA components. Can be a single model
-        string applied to all components or a sequence matching the number of components ``N``.
-        Supported options are ``'sGARCH'``, ``'eGARCH'``, and ``'gjrGARCH'``.
+        string applied to all components or a sequence matching the number of components `N`.
+        Supported options are `'sGARCH'`, `'eGARCH'`, and `'gjrGARCH'`.
 
     Returns
     -------
     cov_forecast : NDArray[np.float64]
-        A 2D array of shape ``(N, N)`` containing the 1-step ahead conditional covariance
+        A 2D array of shape `(N, N)` containing the 1-step ahead conditional covariance
         matrix forecast.
     std_residuals : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` containing in-sample standardized residuals.
+        A 2D array of shape `(T, N)` containing in-sample standardized residuals.
 
     Raises
     ------
     ValueError
-        If ``returns_matrix`` is invalid, if ``univariate_model`` fails validation, or if
+        If `returns_matrix` is invalid, if `univariate_model` fails validation, or if
         Stage 1 (ICA component GARCH) or Stage 2 (mixing matrix) optimization fails to converge.
     """
 
@@ -845,7 +866,7 @@ def predict_mean(
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape (T, N) where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset returns.
     model : MeanModel
         The forecasting model to use:
@@ -862,13 +883,14 @@ def predict_mean(
         * **alpha** (*float*, default=1.0): Lasso penalty parameter for `'var'`.
         * **tol** (*float*, default=1e-4): Convergence tolerance for `'var'` Lasso solver.
         * **max_iter** (*int*, default=10000): Maximum iterations for `'var'` Lasso solver.
+        * **seed** (*int | np.random.RandomState*, default=42): Seed used for determinism for `'var'` Lasso solver.
 
     Returns
     -------
     forecasts : NDArray[np.float64]
-        A 1D array of shape (N,) containing 1-step ahead return forecasts.
+        A 1D array of shape `(N,)` containing 1-step ahead return forecasts.
     residuals : NDArray[np.float64]
-        A 2D array of shape (T_eff, N) containing in-sample residuals.
+        A 2D array of shape `(T_eff, N)` containing in-sample residuals.
 
     Raises
     ------
@@ -897,7 +919,7 @@ def predict_volatility(
     Parameters
     ----------
     returns_matrix : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` where rows represent time periods and
+        A 2D array of shape `(T, N)` where rows represent time periods and
         columns represent asset residuals from a mean model.
     model : VolatilityModel
         The multivariate GARCH forecasting model to use:
@@ -911,14 +933,14 @@ def predict_volatility(
         Keyword arguments passed directly to the underlying model implementation:
 
         * **asymmetric** (*bool*, default=False): Incorporate leverage effects (for `'dcc'` and `'dbekk'`).
-        * **univariate_model** (*UGARCHModel | list[UGARCHModel]*, default="sGARCH"): Univariate GARCH name in rugarch.
+        * **univariate_model** (*UGARCHModel | list[UGARCHModel]*, default="sGARCH"): Univariate name in `rugarch`.
 
     Returns
     -------
     cov_forecast : NDArray[np.float64]
-        A 2D array of shape ``(N, N)`` containing the 1-step ahead conditional covariance forecast.
+        A 2D array of shape `(N, N)` containing the 1-step ahead conditional covariance forecast.
     std_residuals : NDArray[np.float64]
-        A 2D array of shape ``(T, N)`` containing in-sample standardized residuals.
+        A 2D array of shape `(T, N)` containing in-sample standardized residuals.
 
     Raises
     ------

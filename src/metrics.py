@@ -92,18 +92,18 @@ def multivariate_normal_log_likelihood(
     Parameters
     ----------
     x : NDArray[np.float64]
-        Input observation vector of shape (d,) or batch of vectors of shape (N, d),
+        Input observation vector of shape `(d,)` or batch of vectors of shape `(N, d)`,
         where 'd' is the feature dimension and 'N' is the number of samples.
     mean : NDArray[np.float64]
-        The mean vector of the distribution of shape (d,).
+        The mean vector of the distribution of shape `(d,)`.
     cov : NDArray[np.float64]
-        The covariance matrix of the distribution of shape (d, d).
+        The covariance matrix of the distribution of shape `(d, d)`.
 
     Returns
     -------
     float | NDArray[np.float64]
         The log-likelihood value as a float (if 'x' is a single 1D vector) or a 1D
-        NumPy array of log-likelihood values of shape (N,) (if 'x' is a 2D batch).
+        NumPy array of log-likelihood values of shape `(N,)` (if 'x' is a 2D batch).
 
     Raises
     ------
@@ -512,12 +512,12 @@ def compute_metric(
     metric : MetricName
         The risk-adjusted performance ratio to compute. Supported options:
 
-        * ``'sharpe'``: Sharpe ratio.
-        * ``'sortino'``: Sortino ratio.
-        * ``'central_sortino'``: Central Sortino ratio.
-        * ``'omega'``: Omega ratio.
-        * ``'tail_effectiveness'``: Tail Effectiveness ratio.
-        * ``'central_tail_effectiveness'``: Central Tail Effectiveness ratio.
+        * `'sharpe'`: Sharpe ratio.
+        * `'sortino'`: Sortino ratio.
+        * `'central_sortino'`: Central Sortino ratio.
+        * `'omega'`: Omega ratio.
+        * `'tail_effectiveness'`: Tail Effectiveness ratio.
+        * `'central_tail_effectiveness'`: Central Tail Effectiveness ratio.
     **kwargs : Any
         Keyword arguments passed directly to the underlying ratio function:
 
@@ -533,7 +533,7 @@ def compute_metric(
     Raises
     ------
     ValueError
-        If ``metric`` is unrecognized or parameters fail validation checks.
+        If `metric` is unrecognized or parameters fail validation checks.
     """
 
     metric_key = metric.lower().replace("-", "_")

@@ -6,8 +6,6 @@ import numpy as np
 from deap import base, creator, tools
 from numpy.typing import NDArray
 
-from src.config import TOTAL_TOKENS
-
 
 def optimize_portfolio(
     returns_matrix: NDArray[np.float64],
@@ -19,9 +17,10 @@ def optimize_portfolio(
     max_shift: int = 20,
     indpb: float = 0.5,
     tournsize: int = 2,
-    total_tokens: int = TOTAL_TOKENS,
+    total_tokens: int = 1000,
     warm_start_pop: list[list[int]] | None = None,
     warm_start_ratio: float = 0.2,
+    seed: int = 42,
 ) -> tuple[NDArray[np.float64], list[list[int]]]:
     """
     Optimize portfolio allocation using a Genetic Algorithm with pairwise comparison.
@@ -48,12 +47,15 @@ def optimize_portfolio(
         Independent probability for each attribute to be exchanged during crossover.
     tournsize : int, default=2
         Number of candidates during each round of tournament selection.
-    total_tokens : int, default=TOTAL_TOKENS
+    total_tokens : int, default=1000
         Total integer tokens for allocation resolution (step size = 1/total_tokens).
     warm_start_pop : list[list[int]] | None, default=None
         Optional population of token chromosomes (must have length equal to pop_size) to seed the initial generation.
     warm_start_ratio : float, default=0.2
         Proportion of the initial population to fill with best warm-start individuals.
+    seed : int, default=42
+        Random seed for initializing Python's `random` module and `numpy.random`
+        to guarantee reproducible evolution results across runs.
 
     Returns
     -------
@@ -68,6 +70,11 @@ def optimize_portfolio(
         If `returns_matrix` is not 2D, contains zero dimensions, or parameters fall
         outside valid mathematical ranges.
     """
+
+    # Set random seeds for reproducibility
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
 
     # Validate values
     if returns_matrix.ndim != 2:
@@ -122,9 +129,12 @@ def optimize_portfolio(
 
     # Define helpers
     def create_individual(k_assets: int) -> list[int]:
-        cuts = sorted([random.randint(0, total_tokens) for _ in range(k_assets - 1)])
-        cuts = [0] + cuts + [total_tokens]
-        return cast(list[int], creator.Individual([cuts[i] - cuts[i - 1] for i in range(1, len(cuts))]))
+        cuts = sorted(random.sample(range(1, total_tokens + k_assets), k_assets - 1))
+        cuts = [0] + cuts + [total_tokens + k_assets]
+
+        tokens = [cuts[i] - cuts[i - 1] - 1 for i in range(1, len(cuts))]
+
+        return cast(list[int], creator.Individual(tokens))
 
     def mut_zero_sum(individual: list[int]) -> tuple[list[int]]:
         positive_indices = [i for i, val in enumerate(individual) if val > 0]

@@ -1,2 +1,7 @@
-2026-08-31 14:01:26,918 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
-2026-08-31 14:26:37,239 - INFO - [2019-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH']}
+2026-09-14 06:22:41,480 - INFO - [2019-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.0001}
+2026-09-14 06:49:58,820 - INFO - [2019-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH']}
+2026-09-14 06:52:28,178 - WARNING - [2019-02-05] Volatility model execution failed for 'ccc': CCC estimation failed: Error in (function (data_mat, u_models)  : 
+  CCC Stage 1 (Univariate GARCH) failed to converge for asset(s): 5
+
+2026-09-14 06:52:28,179 - WARNING - [2019-02-05] Falling back to naive model optimization
+2026-09-14 06:52:28,179 - WARNING - [2019-02-05] Falling back to previous weights
