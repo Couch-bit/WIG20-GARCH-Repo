@@ -26,13 +26,6 @@ library(rugarch)
 library(rmgarch)
 library(BEKKs)
 
-Sys.setenv(OMP_NUM_THREADS = "1")
-Sys.setenv(MKL_NUM_THREADS = "1")
-if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
-  RhpcBLASctl::blas_set_num_threads(1)
-  RhpcBLASctl::omp_set_num_threads(1)
-}
-
 extract_H_t <- function(H_obj, t_idx, T_obs, N_val) {
   if (is.list(H_obj)) return(H_obj[[t_idx]])
   d <- dim(H_obj)

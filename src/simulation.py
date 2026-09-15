@@ -30,18 +30,18 @@ def _generate_fhs_returns(
     Parameters
     ----------
     forecast_mean : NDArray[np.float64]
-        1D array of shape (N,) containing the 1-step ahead mean forecast.
+        1D array of shape `(N,)` containing the 1-step ahead mean forecast.
     forecast_cov : NDArray[np.float64]
-        2D array of shape (N, N) containing the 1-step ahead covariance forecast.
+        2D array of shape `(N, N)` containing the 1-step ahead covariance forecast.
     std_residuals : NDArray[np.float64]
-        2D array of shape (T, N) containing the historical standardized residuals.
+        2D array of shape `(T, N)` containing the historical standardized residuals.
     eig_eps : float, default=1e-8
         Minimal value for eigenvalues used for spectral decomposition to be enforced for numerical stability.
 
     Returns
     -------
     NDArray[np.float64]
-        2D array of shape (T, N) containing simulated asset log-returns.
+        2D array of shape `(T, N)` containing simulated asset log-returns.
     """
 
     # Calculate symmetric matrix square root of forecasted covariance
