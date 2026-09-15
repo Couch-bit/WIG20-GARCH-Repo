@@ -305,7 +305,7 @@ def predict_ar_single(
     Raises
     ------
     ValueError
-        If series is not 1D, has zero dimension, or if p is outside valid range.
+        If `series` is not 1D, has zero dimension, or if `p` is outside valid range.
     """
 
     if series.ndim != 1:
@@ -406,7 +406,7 @@ def _predict_naive_mean(
     Raises
     ------
     ValueError
-        If returns_matrix is not 2D or has zero dimensions.
+        If `returns_matrix` is not 2D or has zero dimensions.
     """
 
     if returns_matrix.ndim != 2:
@@ -445,7 +445,7 @@ def _predict_ar_matrix(
     Raises
     ------
     ValueError
-        If returns_matrix is invalid or p_list length does not match asset count.
+        If `returns_matrix` is invalid or p_list length does not match asset count.
     """
 
     if returns_matrix.ndim != 2:
@@ -518,7 +518,7 @@ def _predict_var_lasso(
     Raises
     ------
     ValueError
-        If returns_matrix is invalid or parameters fall outside valid ranges.
+        If `returns_matrix` is invalid or parameters fall outside valid ranges.
     """
 
     if returns_matrix.ndim != 2:
@@ -586,7 +586,7 @@ def _predict_naive_cov(
     Raises
     ------
     ValueError
-        If returns_matrix is not 2D or has less than 10 observations.
+        If `returns_matrix` is not 2D or has less than 10 observations.
     """
 
     if returns_matrix.ndim != 2 or returns_matrix.shape[0] < 10:
@@ -888,7 +888,7 @@ def predict_mean(
     Raises
     ------
     ValueError
-        If model is unrecognized, arguments are invalid, or optimization fails.
+        If `model` is unrecognized, arguments are invalid, or optimization fails.
     """
 
     if model == "naive":
@@ -938,7 +938,7 @@ def predict_volatility(
     Raises
     ------
     ValueError
-        If model is unrecognized, parameters fall outside valid ranges, or optimization fails.
+        If `model` is unrecognized, parameters fall outside valid ranges, or optimization fails.
     """
 
     model_key = model.lower().replace("-", "_")

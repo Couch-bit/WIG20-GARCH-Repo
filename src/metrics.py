@@ -188,7 +188,7 @@ def _validate_array_and_bounds(returns: NDArray[np.float64], alpha: float | None
     Raises
     ------
     ValueError
-        If 'returns' is not a 1D array, is empty, or if 'alpha' is out of bounds (0, 1).
+        If `returns` is not a 1D array, is empty, or if `alpha` is out of bounds (0, 1).
     """
 
     if returns.ndim != 1:
@@ -201,7 +201,7 @@ def _validate_array_and_bounds(returns: NDArray[np.float64], alpha: float | None
         raise ValueError(f"'alpha' must be strictly between 0 and 1 (exclusive), got {alpha}")
 
 
-def _expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05) -> float:
+def expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05) -> float:
     """
     Calculate sample Expected Shortfall (CVaR) for excess returns at tail probability alpha.
 
@@ -220,7 +220,7 @@ def _expected_shortfall(excess_returns: NDArray[np.float64], alpha: float = 0.05
     Raises
     ------
     ValueError
-        If 'excess_returns' is not a 1D array, is empty, or if 'alpha' is out of bounds (0, 1).
+        If `excess_returns` is not a 1D array, is empty, or if `alpha` is out of bounds (0, 1).
     """
 
     _validate_array_and_bounds(excess_returns, alpha)
@@ -254,7 +254,7 @@ def _sharpe_ratio(
     Raises
     ------
     ValueError
-        If returns array is invalid or standard deviation is zero.
+        If `returns` array is invalid or standard deviation is zero.
     """
 
     _validate_array_and_bounds(returns)
@@ -295,7 +295,7 @@ def _central_sortino_ratio(
     Raises
     ------
     ValueError
-        If returns array is invalid or central downside deviation is zero.
+        If `returns` array is invalid or central downside deviation is zero.
     """
 
     _validate_array_and_bounds(returns)
@@ -349,7 +349,7 @@ def _central_tail_effectiveness_ratio(
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
-    es = _expected_shortfall(excess_returns, alpha)
+    es = expected_shortfall(excess_returns, alpha)
 
     denominator = es + expected_excess_return
 
@@ -385,7 +385,7 @@ def _omega_ratio(
     Raises
     ------
     ValueError
-        If returns array is invalid or expected downside is zero.
+        If `returns` array is invalid or expected downside is zero.
     """
 
     _validate_array_and_bounds(returns)
@@ -429,7 +429,7 @@ def _sortino_ratio(
     Raises
     ------
     ValueError
-        If returns array is invalid or downside deviation is zero.
+        If `returns` array is invalid or downside deviation is zero.
     """
 
     _validate_array_and_bounds(returns)
@@ -483,7 +483,7 @@ def _tail_effectiveness_ratio(
 
     excess_returns = returns - rf
     expected_excess_return = float(np.mean(excess_returns))
-    es = _expected_shortfall(excess_returns, alpha)
+    es = expected_shortfall(excess_returns, alpha)
 
     if es <= 0.0:
         raise ValueError("Expected Shortfall is non-positive; Tail Effectiveness ratio is undefined")

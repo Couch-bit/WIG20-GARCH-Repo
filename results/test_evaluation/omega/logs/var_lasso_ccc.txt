@@ -1,8 +1,13 @@
-2026-09-01 03:27:47,150 - INFO - [2020-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
-2026-09-01 03:52:50,654 - INFO - [2020-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH']}
-2026-09-01 04:10:55,306 - INFO - [2021-01-04] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
-2026-09-01 04:33:36,513 - INFO - [2021-01-04] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['gjrGARCH', 'gjrGARCH', 'eGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH']}
-2026-09-01 04:53:25,376 - INFO - [2022-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 5, 'alpha': 0.0001}
-2026-09-01 05:16:27,633 - INFO - [2022-01-03] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['sGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'sGARCH']}
-2026-09-01 05:32:13,330 - INFO - [2023-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 1, 'alpha': 0.001}
-2026-09-01 05:54:05,796 - INFO - [2023-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['eGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH']}
+2026-09-14 11:06:17,387 - INFO - [2020-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-09-14 11:30:34,604 - INFO - [2020-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH']}
+2026-09-14 11:33:00,947 - WARNING - [2020-03-09] Volatility model execution failed for 'ccc': CCC estimation failed: Error in (function (data_mat, u_models)  : 
+  CCC Stage 1 (Univariate GARCH) failed to converge for asset(s): 14
+
+2026-09-14 11:33:00,947 - WARNING - [2020-03-09] Falling back to naive model optimization
+2026-09-14 11:33:00,948 - WARNING - [2020-03-09] Falling back to previous weights
+2026-09-14 11:49:36,657 - INFO - [2021-01-04] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-09-14 12:11:41,075 - INFO - [2021-01-04] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['gjrGARCH', 'gjrGARCH', 'eGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH']}
+2026-09-14 12:32:13,810 - INFO - [2022-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 5, 'alpha': 0.0001}
+2026-09-14 12:54:48,216 - INFO - [2022-01-03] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['sGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'sGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'gjrGARCH', 'sGARCH', 'sGARCH', 'sGARCH']}
+2026-09-14 13:11:09,396 - INFO - [2023-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 1, 'alpha': 0.001}
+2026-09-14 13:35:02,332 - INFO - [2023-01-02] [Volatility Model Tuning] Tuned parameters for 'ccc': {'univariate_model': ['eGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH', 'eGARCH', 'eGARCH', 'sGARCH', 'eGARCH', 'gjrGARCH', 'sGARCH']}

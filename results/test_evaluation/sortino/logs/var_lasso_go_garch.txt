@@ -1,8 +1,13 @@
-2026-08-31 22:05:09,827 - INFO - [2020-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
-2026-08-31 22:05:09,827 - INFO - [2020-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
-2026-08-31 23:37:11,947 - INFO - [2021-01-04] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
-2026-08-31 23:37:11,948 - INFO - [2021-01-04] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
-2026-09-01 01:04:55,303 - INFO - [2022-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 5, 'alpha': 0.0001}
-2026-09-01 01:04:55,303 - INFO - [2022-01-03] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
-2026-09-01 02:15:29,933 - INFO - [2023-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 1, 'alpha': 0.001}
-2026-09-01 02:15:29,933 - INFO - [2023-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-09-14 05:52:17,280 - INFO - [2020-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-09-14 05:52:17,280 - INFO - [2020-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-09-14 07:26:48,198 - INFO - [2021-01-04] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 20, 'alpha': 0.001}
+2026-09-14 07:26:48,198 - INFO - [2021-01-04] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-09-14 08:49:43,863 - INFO - [2022-01-03] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 5, 'alpha': 0.0001}
+2026-09-14 08:49:43,863 - INFO - [2022-01-03] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
+2026-09-14 09:38:51,483 - WARNING - [2022-10-14] Volatility model execution failed for 'go_garch': GO-GARCH estimation failed: Error: 
+gogarchfit-->warning: convergence problem in univariate fit...
+
+2026-09-14 09:38:51,483 - WARNING - [2022-10-14] Falling back to naive model optimization
+2026-09-14 09:38:51,484 - WARNING - [2022-10-14] Falling back to previous weights
+2026-09-14 09:55:39,229 - INFO - [2023-01-02] [Mean Model Tuning] Tuned parameters for 'var_lasso': {'p': 1, 'alpha': 0.001}
+2026-09-14 09:55:39,229 - INFO - [2023-01-02] [Volatility Model Tuning] Tuned parameters for 'go_garch': {}
